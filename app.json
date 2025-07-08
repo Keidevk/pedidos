@@ -33,7 +33,57 @@
           "resizeMode": "contain",
           "backgroundColor": "#ffffff"
         }
-      ]
+      ],
+      [
+        "expo-font",
+        {
+          "fonts": [
+            "./assets/fonts/Inter_18pt-Black.ttf"
+          ],
+          "android": {
+            "fonts": [
+              {
+                "fontFamily": "Inter",
+                "fontDefinitions": [
+                  {
+                    "path": "./assets/fonts/Inter_18pt-Black.ttf",
+                    "weight": 800
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      [
+        "expo-secure-store",
+        {
+          "configureAndroidBackup": true,
+        }
+      ],
+      [
+        "expo-font",
+        {
+          "font": [
+            "./assets/fonts/LilyScriptOne-Regular.ttf"
+          ],
+          "android": {
+            "fonts": [
+              {
+                "fontFamily": "Lily",
+                "fontDefinitions": [
+                  {
+                    "path": "./assets/fonts/LilyScriptOne-Regular.ttf",
+                    "weight": 800
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      
+      "expo-secure-store"
     ],
     "experiments": {
       "typedRoutes": true
