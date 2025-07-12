@@ -34,7 +34,6 @@ async function getShops(setState:Dispatch<Tienda[]>){
     const response = await fetch('http://192.168.3.6:3000/api/shop/')
     const data = await response.json()
     setState(data)
-    console.log(data)
 }
 
 export default function MenuPrincipal(){
@@ -45,16 +44,19 @@ export default function MenuPrincipal(){
     useEffect(()=>{
         getItem('@auth_token',setLogged)
         getShops(setShops)
-        // console.log('logged')
     },[])
 
-    const handlerAlmuerzo = async () => {
-        router.replace('/(main)/almuerzo');
+    const handlerCategory = async (category:string) => {
+        router.push({pathname:'/(main)/category/[category]',params:{category}});
     };
 
-    const handlerShop = async (id:number) => {
+    const handlerShopById = async (id:number) => {
         router.push({pathname:`/(main)/shop/[id]`,params:{id}});
     };
+    function handlerShops(){
+        router.push('/(main)/shops')
+    }
+
     
     return(
     <View style={{paddingTop: insets.top}}>
@@ -72,14 +74,14 @@ export default function MenuPrincipal(){
             ></TextInput>
             </View>
             <View style={{flexDirection:'row',marginLeft:'4%'}}>
-                <TouchableOpacity onPress={handlerAlmuerzo} style={style.button_etiqueta}>
+                <TouchableOpacity onPress={(()=>handlerCategory('Almuerzo'))} style={style.button_etiqueta}>
                     <Image
                     contentFit="cover"
                     style={style.image_etiqueta}
                     source={require('../../assets/images/tenedor.png')}></Image>
                     <Text style={style.text_etiqueta}>Almuerzos</Text>
                 </TouchableOpacity> 
-                <TouchableOpacity style={style.button_etiqueta}>
+                <TouchableOpacity onPress={(()=>handlerCategory('Postres'))} style={style.button_etiqueta}>
                     <Image
                     contentFit="cover"
                     style={style.image_etiqueta}
@@ -97,26 +99,25 @@ export default function MenuPrincipal(){
             <View style={style.promo}>
 
             </View>
-            <View style={style.subtitle}>
-            <Text style={style.text_etiqueta}>Tiendas</Text>
-            <Image
-            style={style.chevron}
-            contentFit="cover"
-            source={require('../../assets/images/chevron.svg')}></Image>
-            </View>
+            <TouchableOpacity onPress={handlerShops} style={style.subtitle}>
+                <Text style={style.text_etiqueta}>Tiendas</Text>
+                <Image
+                style={style.chevron}
+                contentFit="cover"
+                source={require('../../assets/images/chevron.svg')}></Image>
+            </TouchableOpacity>
             <View style={style.shops}>
                 <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                 {
                 shops && shops.map((value,index)=>{
                     return (
-                    <TouchableOpacity onPress={()=>handlerShop(value.id)} style={{margin:5,alignItems:'center'}} key={index}>
+                    <TouchableOpacity onPress={()=>handlerShopById(value.id)} style={{margin:5,alignItems:'center'}} key={index}>
                         <Image
                         style={{backgroundColor:"#ccc",height:60,width:60,borderRadius:100}}
                         source={value.fotos_tienda[0]}
                         ></Image>
                         <Text style={{color:'white',fontFamily:'Inter_400Regular'}}>{value.Nombre}</Text>   
-                    </TouchableOpacity>
-)
+                    </TouchableOpacity>)
                 })    
                 }
                 </ScrollView>

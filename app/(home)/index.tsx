@@ -1,27 +1,19 @@
 
 import { Inter_300Light, Inter_600SemiBold, Inter_900Black } from "@expo-google-fonts/inter";
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFonts } from "expo-font";
-import { Link, Redirect, useRouter } from "expo-router";
+import { Link, Redirect, router } from "expo-router";
 import { Dispatch, useEffect, useState } from "react";
 import { StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { getAuth } from "../utils";
 
 
-async function getAuth(setState:Dispatch<boolean>){
-    const auth = await AsyncStorage.getItem('@auth_token')
-    if(auth==='true'){
-      setState(true)
-    }else{
-      setState(false)
-    }
-}
 
 export default function Index() {
   const [cI, onChangeCi] = useState("")
   const [password, onChangePassword] = useState("")
   const insets = useSafeAreaInsets();
-  const router = useRouter()
   const [isLogged,setLogged] = useState(false)
   useFonts({Inter_900Black,Inter_600SemiBold,Inter_300Light});
   
@@ -29,9 +21,9 @@ export default function Index() {
     getAuth(setLogged)
   },[])
 
-  const handlerLoggin = async () => {
+  const handlerLoggin = async (setLogged:Dispatch<boolean>) => {
   try {
-    const response = await fetch("http://192.168.3.6:3000/api/auth", {
+    const response = await fetch(`${process.env.EXPO_PUBLIC_HOST}/api/auth`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ cI, password })
@@ -48,7 +40,7 @@ export default function Index() {
     console.error("Login error:", error);
   }
 };
-    
+
   return (
     <View style={{paddingTop: insets.top,}}>
       { isLogged === true ? 
@@ -82,7 +74,7 @@ export default function Index() {
           boxShadow:[{blurRadius:4,offsetX:1,offsetY:2,color:'#828282'}],
 
         }}>
-          <Text onPress={handlerLoggin} style={style.textButton}>Continue</Text>
+          <Text onPress={()=>handlerLoggin(setLogged)} style={style.textButton}>Continue</Text>
         </TouchableOpacity>
         <Text style={{textAlign:'right',marginRight:25,textDecorationLine:'underline',marginBottom:'60%',fontFamily:'Inter_300Light',marginTop:5}}>¿Olvidaste tu Contraseña?</Text>
         <TouchableOpacity>

@@ -35,6 +35,16 @@ interface Producto {
   destacado: boolean;
 }
 
+type CarritoItem = {
+  productoId: string;
+  cantidad: number;
+  tiendaId:string;
+};
+type carshopping = {
+  productoId:number,
+  cantidad:number
+}
+
 async function getShopProducts(id:string|string[],setState:Dispatch<Producto[]>){
     const response = await fetch(`http://192.168.3.6:3000/api/product/getproducts/${id}`)
     const data = await response.json()
@@ -53,12 +63,6 @@ function handlerProduct(id:number){
   })
 }
 
-type CarritoItem = {
-  tiendaId:string;
-  productoId: string;
-  cantidad: number;
-};
-
 export default function Shops(){
   const { id } = useLocalSearchParams();
   // const insets = useSafeAreaInsets();
@@ -72,37 +76,45 @@ export default function Shops(){
 const agregarAlCarrito = async (
   nuevoId: string,
   tiendaId: string,
-  cart: CarritoItem[],
   setCart: React.Dispatch<React.SetStateAction<CarritoItem[]>>
 ) => {
-  const actualizado = (() => {
-    const existe = cart.find(
-      item => item.productoId === nuevoId && item.tiendaId === tiendaId
-    );
+  try {
+    const carritoRaw = await AsyncStorage.getItem(`carrito_${tiendaId}`);
+    const carritoTienda: CarritoItem[] = carritoRaw ? JSON.parse(carritoRaw) : [];
+
+    // 👇 Buscar solo dentro del carrito de esa tienda
+    const existe = carritoTienda.find(item => item.productoId === nuevoId);
+
+    let actualizado: CarritoItem[];
 
     if (existe) {
-      // Si el producto ya existe para esa tienda, aumenta la cantidad
-      return cart.map(item =>
-        item.productoId === nuevoId && item.tiendaId === tiendaId
+      actualizado = carritoTienda.map(item =>
+        item.productoId === nuevoId
           ? { ...item, cantidad: item.cantidad + 1 }
           : item
       );
     } else {
-      // Si no existe, agrégalo
-      return [...cart, { productoId: nuevoId, tiendaId, cantidad: 1 }];
+      actualizado = [...carritoTienda, { productoId: nuevoId, cantidad: 1, tiendaId }];
     }
-  })();
 
-  setCart(actualizado);
+    await AsyncStorage.setItem(`carrito_${tiendaId}`, JSON.stringify(actualizado));
+    console.log('🛒 Producto agregado al carrito de tienda', tiendaId);
 
-  try {
-    await AsyncStorage.setItem('carrito', JSON.stringify(actualizado));
-    console.log('🛒 Carrito actualizado y guardado en AsyncStorage');
+    // 👇 Si quieres actualizar el estado global, primero carga todos los carritos
+    const allKeys = await AsyncStorage.getAllKeys();
+    const carritoKeys = allKeys.filter(key => key.startsWith('carrito_'));
+    const rawCarritos = await AsyncStorage.multiGet(carritoKeys);
+
+    const todosLosItems: CarritoItem[] = rawCarritos.flatMap(([key, value]) => {
+      const tienda = key.replace('carrito_', '');
+      return value ? JSON.parse(value).map((item: any) => ({ ...item, tiendaId: tienda })) : [];
+    });
+
+    setCart(todosLosItems);
   } catch (error) {
-    console.error('❌ Error guardando en AsyncStorage', error);
+    console.error('❌ Error en agregarAlCarrito:', error);
   }
 };
-
 
 
   useEffect(()=>{
@@ -134,7 +146,7 @@ const agregarAlCarrito = async (
               <Text style={{fontFamily:'Inter_300Light'}}>{product.descripcion.length > 25 ? product.descripcion.substring(0, 25) + '...': product.descripcion}</Text>
               <View style={{flexDirection:'row',marginTop:10,justifyContent:'flex-end'}}>
                 <Text style={{fontFamily:'Inter_600SemiBold',fontSize:16}}>${product.precio}</Text>
-                <TouchableOpacity onPress={()=>agregarAlCarrito(product.id.toString(),product.tiendaId.toString(),carshopping, setCarshopping)} style={{flex: 1, justifyContent: 'center', alignItems: 'flex-end'}}>
+                <TouchableOpacity onPress={()=>agregarAlCarrito(product.id.toString(),product.tiendaId.toString(), setCarshopping)} style={{flex: 1, justifyContent: 'center', alignItems: 'flex-end'}}>
                   <Image
                   style={{height:16,width:16}}
                   source={require('../../../assets/images/Plus.svg')}

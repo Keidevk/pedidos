@@ -9,9 +9,7 @@ export default function Registrar(){
     return (<View style={{flex:1,paddingTop: insets.top,}}>
         <Text style={styles.title}>Crear cuenta</Text>
         <Text style={styles.subtitle}>¿Qué modo deseas usar?</Text>
-        
         <TouchableOpacity style={styles.container}>
-
             <Image 
             contentFit="cover"
             style={styles.image}

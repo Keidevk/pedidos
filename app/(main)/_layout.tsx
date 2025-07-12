@@ -36,10 +36,24 @@ export default function MainLayout() {
       }}
       />
       <Tabs.Screen
-      name="almuerzo"
+      name="carrito/[id]"
       options={{
         href:null,
-        title:'(shop)',     
+        title:'category/[category]',     
+      }}
+      />
+      <Tabs.Screen
+      name="category/[category]"
+      options={{
+        href:null,
+        title:'category/[category]',     
+      }}
+      />
+      <Tabs.Screen
+      name="shops"
+      options={{
+        href:null,
+        title:'shops',     
       }}
       />
 

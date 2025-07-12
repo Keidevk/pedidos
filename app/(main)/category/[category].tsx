@@ -3,8 +3,9 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFonts } from "expo-font";
 import { Image } from "expo-image";
 import { router } from "expo-router";
+import { useLocalSearchParams } from "expo-router/build/hooks";
 import { Dispatch, useEffect, useState } from "react";
-import { StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 interface Producto {
@@ -25,24 +26,21 @@ interface Producto {
 async function getItem(item:string,setState:Dispatch<string>){
     await AsyncStorage.getItem(item).then(res=>{
         if(!res) return null 
-        // console.log(res)
         setState(res)
     }).catch(error=>{
         console.error(error)
     })
 }
 
-
-
-async function productFetch(setState:Dispatch<Producto[]|null>){
-    const response = await fetch("http://192.168.3.6:3000/api/product/getproducts");
+async function productFetch(category:string | string[],setState:Dispatch<Producto[]|null>){
+    const response = await fetch(`${process.env.EXPO_PUBLIC_HOST}/api/product/getproductsbycategory/${category}`);
     const data = await response.json();
     setState(data)
 }
 
-export default function Almuerzos(){
+export default function Category(){
     const insets = useSafeAreaInsets();
-    
+    const {category} = useLocalSearchParams()
     const [products,setProducts] = useState<Producto[]|null>(null)
     const [isLogged,setLogged] = useState<string|null>(null)
 
@@ -52,12 +50,12 @@ export default function Almuerzos(){
             router.replace('/(main)/main');
         };
 
+    function handlerProduct(id:number){
+        router.push({pathname:'/(main)/product/[id]',params:{id}})
+    }
     useEffect(()=>{
-        productFetch(setProducts)
+        productFetch(category,setProducts)
         getItem('@auth_token',setLogged)
-
-        console.log(products)
-        
     },[])
     return (
     <View style={{paddingTop: insets.top}}>
@@ -65,22 +63,24 @@ export default function Almuerzos(){
             <Image
             style={style.chevron}
             contentFit="cover"
-            source={require('../../assets/images/arrowback.svg')}></Image>
-            <Text style={{fontFamily:'Inter_600SemiBold'}}>Almuerzos</Text>    
+            source={require('../../../assets/images/arrowback.svg')}></Image>
+            <Text style={{fontFamily:'Inter_600SemiBold'}}>{category}</Text>    
         </TouchableOpacity>
         <View style={style.container_input}>
             <Image 
                 style={style.image_input}
                 contentFit="cover"
-                source={require("../../assets/images/search.svg")}/>
+                source={require("../../../assets/images/search.svg")}/>
             <TextInput
                 style={style.text_input}
                 placeholder="Buscar"
             ></TextInput>
         </View>
+        <ScrollView style={{paddingBottom:100}}> 
         {products && products.map((product,index)=>{
-            return (
-            <View key={index} style={{flexDirection:'row',marginVertical:20,backgroundColor:'#FFF0F0',borderRadius:10,padding:10}}>
+        return (
+        <TouchableOpacity onPress={()=>{handlerProduct(product.id)}} key={index}>        
+            <View style={{flexDirection:'row',marginVertical:20,backgroundColor:'#FFF0F0',borderRadius:10,padding:10}}>
                 <View style={{backgroundColor:"#ccc",width:100,height:100,borderRadius:10}}>
                     {/* <Image
                     contentFit="cover"
@@ -95,8 +95,9 @@ export default function Almuerzos(){
                     <Text style={{marginLeft:10}}>
                     {product.categoria}</Text>
                 </View>
-            </View>)})
-        }
+            </View>
+        </TouchableOpacity>)})}
+        </ScrollView>
     </View>)
 }
 const style = StyleSheet.create({
