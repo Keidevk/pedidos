@@ -1,16 +1,17 @@
 import { Image } from 'expo-image';
-import { Tabs } from "expo-router";
+import { Tabs, useSegments } from "expo-router";
 
 export default function MainLayout() {
-
+  const segment = useSegments()
+  console.log(segment)
   return (
        <Tabs 
       screenOptions={{
         headerShown:false,
         tabBarActiveTintColor:'red',
         tabBarStyle:{
-          // backgroundColor:'',
           transitionDuration:'0ms',
+          display: segment[1] === "carrito" && segment[2] === "[id]" ? 'none' : 'flex'
         },
       }}
       >
