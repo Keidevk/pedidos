@@ -37,9 +37,7 @@
       [
         "expo-font",
         {
-          "fonts": [
-            "./assets/fonts/Inter_18pt-Black.ttf"
-          ],
+          "fonts": ["./assets/fonts/Inter_18pt-Black.ttf"],
           "android": {
             "fonts": [
               {
@@ -58,15 +56,13 @@
       [
         "expo-secure-store",
         {
-          "configureAndroidBackup": true,
+          "configureAndroidBackup": true
         }
       ],
       [
         "expo-font",
         {
-          "font": [
-            "./assets/fonts/LilyScriptOne-Regular.ttf"
-          ],
+          "font": ["./assets/fonts/LilyScriptOne-Regular.ttf"],
           "android": {
             "fonts": [
               {
@@ -82,8 +78,23 @@
           }
         }
       ],
-      
-      "expo-secure-store"
+      "expo-secure-store",
+      [
+        "expo-sqlite",
+        {
+          "enableFTS": true,
+          "useSQLCipher": true,
+          "android": {
+            "enableFTS": false,
+            "useSQLCipher": false
+          },
+          "ios": {
+            "customBuildFlags": [
+              "-DSQLITE_ENABLE_DBSTAT_VTAB=1 -DSQLITE_ENABLE_SNAPSHOT=1"
+            ]
+          }
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true
