@@ -3,24 +3,47 @@ import { Inter_300Light, Inter_600SemiBold, Inter_900Black } from "@expo-google-
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFonts } from "expo-font";
 import { Image } from "expo-image";
-import { Link, Redirect, router } from "expo-router";
+import { Link, router } from "expo-router";
 import { Dispatch, useEffect, useState } from "react";
 import { StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { getAuth } from "../utils";
 
-
+const userRoutes = {
+  cliente: "/(main)/main",
+  tienda: "/(seller)/sellerMain",
+  delivery: "/(home)/index",
+};
+type UserType = 'cliente' | 'tienda' | 'delivery';
 
 export default function Index() {
   const [email, onChangeEmail] = useState("")
   const [password, onChangePassword] = useState("")
   const insets = useSafeAreaInsets();
   const [isLogged,setLogged] = useState(false)
+  const [typeUser,setTypeUser] = useState<UserType|null>(null)
   useFonts({Inter_900Black,Inter_600SemiBold,Inter_300Light});
   
   useEffect(()=>{
     getAuth(setLogged)
   },[])
+
+  useEffect(() => {
+  if (typeUser && userRoutes[typeUser]) {
+    if (typeUser === 'cliente'){
+      router.push({pathname:'/(main)/main'});
+    }
+    else if(typeUser === 'tienda'){
+      router.push({pathname:'/(seller)/sellerMain'});
+    }
+    else if(typeUser === 'delivery'){
+      router.push({pathname:'/(home)'})
+    }
+  } else {
+    
+  }
+}, [typeUser]);
+
 
   const handlerLoggin = async (setLogged:Dispatch<boolean>) => {
   try {
@@ -35,6 +58,7 @@ export default function Index() {
     if(response.ok && data.token) {
       setLogged(true)
       await AsyncStorage.setItem('@auth_token', data.token);
+      setTypeUser(data.tipo)
       await AsyncStorage.setItem('@userId',data.userId) // Guarda token
       router.replace('/(main)/main');
     }
@@ -45,11 +69,6 @@ export default function Index() {
 
   return (
     <View style={{paddingTop: insets.top,}}>
-      { isLogged === true ? 
-      <View>
-      <Redirect href={'/(main)/main'}/>
-      </View>
-      :
       <View>
         <View style={{height:160,alignItems:'center'}}>
           <Image source={require('../../assets/images/logo.svg')}
@@ -95,7 +114,7 @@ export default function Index() {
         }}>
           <Link href={'/(home)/registrar'} style={style.textButton}>Registrarse</Link>
         </TouchableOpacity>
-      </View>}
+      </View>
     </View>
   );
 }
