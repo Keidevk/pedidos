@@ -218,6 +218,49 @@ export default function sellerStats() {
   //   }
   // };
 
+  const fetchWeeklyData = async (startDate: number, endDate: number) => {
+    try {
+      const shopId = 3; // ← ajusta según contexto
+      const query = `?shopId=${shopId}&period=week&date=${new Date(
+        startDate
+      ).toISOString()}`;
+      const response = await fetch(`http://192.168.3.6:3000/getStats${query}`);
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error("Error al obtener datos semanales:", error);
+      return [];
+    }
+  };
+  const fetchMonthlyData = async (startDate: number, endDate: number) => {
+    try {
+      const shopId = 3;
+      const query = `?shopId=${shopId}&period=month&date=${new Date(
+        startDate
+      ).toISOString()}`;
+      const response = await fetch(`http://192.168.3.6:3000/getStats${query}`);
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error("Error al obtener datos mensuales:", error);
+      return [];
+    }
+  };
+  const fetchYearlyMonthlyData = async (year: number) => {
+    try {
+      const shopId = 3;
+      const query = `?shopId=${shopId}&period=year&date=${new Date(
+        `${year}-01-01`
+      ).toISOString()}`;
+      const response = await fetch(`http://192.168.3.6:3000/getStats${query}`);
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error("Error al obtener datos anuales:", error);
+      return [];
+    }
+  };
+
   const getWeekRange = (date: Date) => {
     const startOfWeek = new Date(date.setDate(date.getDate() - date.getDay()));
     const endOfWeek = new Date(date.setDate(startOfWeek.getDate() + 6));

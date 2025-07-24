@@ -1,32 +1,18 @@
-<<<<<<< HEAD
 import { Image } from "expo-image";
-import { Tabs } from "expo-router";
-
-export default function MainLayout() {
-=======
-import { Image } from 'expo-image';
 import { Tabs, useSegments } from "expo-router";
 
 export default function MainLayout() {
-  const segment = useSegments()
-  console.log(segment)
->>>>>>> a7e1f90804d0923026a16191169fa9029c1640c1
+  const segment = useSegments();
+  console.log(segment);
   return (
     <Tabs
       screenOptions={{
-<<<<<<< HEAD
         headerShown: false,
         tabBarActiveTintColor: "red",
         tabBarStyle: {
-          // backgroundColor:'',
           transitionDuration: "0ms",
-=======
-        headerShown:false,
-        tabBarActiveTintColor:'red',
-        tabBarStyle:{
-          transitionDuration:'0ms',
-          display: segment[1] === "carrito" && segment[2] === "[id]" ? 'none' : 'flex'
->>>>>>> a7e1f90804d0923026a16191169fa9029c1640c1
+          display:
+            segment[1] === "carrito" && segment[2] === "[id]" ? "none" : "flex",
         },
       }}
     >
