@@ -5,7 +5,7 @@ import { useFonts } from "expo-font";
 import { Image } from "expo-image";
 import { Link, router } from "expo-router";
 import { Dispatch, useEffect, useState } from "react";
-import { StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { Alert, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { getAuth } from "../utils";
 
@@ -62,6 +62,8 @@ export default function Index() {
       setTypeUser(data.tipo)
       await AsyncStorage.setItem('@userId',`${data.userId}`) // Guarda token
       router.replace('/(main)/main');
+    }else{
+      Alert.alert(`${response.status}`,data.message)
     }
   } catch(error) {
     console.error("Login error:", error);
