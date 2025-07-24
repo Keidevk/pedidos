@@ -4,7 +4,7 @@ import { Tabs, useSegments } from "expo-router";
 
 export default function MainLayout() {
   const segment = useSegments();
-  console.log(segment);
+  // console.log(segment);
   return (
     <Tabs
       screenOptions={{
@@ -12,7 +12,10 @@ export default function MainLayout() {
         tabBarActiveTintColor:'red',
         tabBarStyle:{
           transitionDuration:'0ms',
-          display: segment[1] === "carrito" && segment[2] === "[id]" || segment[1] === 'product' && segment[2] === '[id]' ? 'none' : 'flex'
+          display: segment[1] === "carrito" && segment[2] === "[id]" || 
+                  segment[1] === 'product' && segment[2] === '[id]'  ||
+                  segment[1] === 'mapa'||
+                  segment[1] === 'payment' && segment[2] === '[id]' ? 'none' : 'flex'
         },
       }}
     >
@@ -58,6 +61,13 @@ export default function MainLayout() {
         options={{
           href: null,
           title: "category/[category]",
+        }}
+      />
+       <Tabs.Screen
+        name="mapa"
+        options={{
+          href: null,
+          title: "mapa",
         }}
       />
       <Tabs.Screen

@@ -26,6 +26,7 @@ export default function Index() {
   
   useEffect(()=>{
     getAuth(setLogged)
+    // AsyncStorage.clear()
   },[])
 
   useEffect(() => {
@@ -57,9 +58,9 @@ export default function Index() {
     
     if(response.ok && data.token) {
       setLogged(true)
-      await AsyncStorage.setItem('@auth_token', data.token);
+      await AsyncStorage.setItem('@auth_token', `${data.token}`);
       setTypeUser(data.tipo)
-      await AsyncStorage.setItem('@userId',data.userId) // Guarda token
+      await AsyncStorage.setItem('@userId',`${data.userId}`) // Guarda token
       router.replace('/(main)/main');
     }
   } catch(error) {
