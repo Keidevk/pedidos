@@ -4,19 +4,17 @@ import {
   Inter_600SemiBold,
 } from "@expo-google-fonts/inter";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useNavigation } from "@react-navigation/native";
 import { useFonts } from "expo-font";
 import { Image } from "expo-image";
 import { router } from "expo-router";
 import { Dispatch, useEffect, useState } from "react";
 import {
-  Pressable,
   ScrollView,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
-  View,
+  View
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -75,8 +73,6 @@ export default function MenuPrincipal() {
         router.push('/(main)/shops')
     }
 
-  const navigation = useNavigation();
-
   return (
     <View style={{ paddingTop: insets.top }}>
       {isLogged ? (
@@ -106,7 +102,7 @@ export default function MenuPrincipal() {
                     source={require('../../assets/images/cookies-32-regular.svg')}></Image>
                     <Text style={style.text_etiqueta}>Postres</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={style.button_etiqueta}>
+                <TouchableOpacity onPress={(()=>handlerCategory('Cena'))} style={style.button_etiqueta}>
                     <Image
                     contentFit="cover"
                     style={style.image_etiqueta}
@@ -146,100 +142,6 @@ export default function MenuPrincipal() {
             </View>
             <View style={style.subtitle}>
             <Text style={style.text_etiqueta}>Más Pedidos</Text>
-            <Image
-              style={style.image_input}
-              contentFit="cover"
-              source={require("../../assets/images/search.svg")}
-            />
-            <TextInput
-              style={style.text_input}
-              placeholder="Buscar"
-            ></TextInput>
-          </View>
-          <View style={{ flexDirection: "row", marginLeft: "4%" }}>
-            <TouchableOpacity
-              onPress={() => handlerCategory("Almuerzo")}
-              style={style.button_etiqueta}
-            >
-              <Image
-                contentFit="cover"
-                style={style.image_etiqueta}
-                source={require("../../assets/images/tenedor.png")}
-              ></Image>
-              <Text style={style.text_etiqueta}>Almuerzos</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() => handlerCategory("Postres")}
-              style={style.button_etiqueta}
-            >
-              <Image
-                contentFit="cover"
-                style={style.image_etiqueta}
-                source={require("../../assets/images/cookies-32-regular.svg")}
-              ></Image>
-              <Text style={style.text_etiqueta}>Postres</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={style.button_etiqueta}>
-              <Image
-                contentFit="cover"
-                style={style.image_etiqueta}
-                source={require("../../assets/images/hamburguesas.png")}
-              ></Image>
-              <Text style={style.text_etiqueta}>Hamburguesas</Text>
-            </TouchableOpacity>
-          </View>
-          <View style={style.promo}></View>
-          <TouchableOpacity onPress={handlerShops} style={style.subtitle}>
-            <Text style={style.text_etiqueta}>Tiendas</Text>
-            <Image
-              style={style.chevron}
-              contentFit="cover"
-              source={require("../../assets/images/chevron.svg")}
-            ></Image>
-          </TouchableOpacity>
-          <View style={style.shops}>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-              {shops &&
-                shops.map((value, index) => {
-                  return (
-                    <TouchableOpacity
-                      onPress={() => handlerShopById(value.id)}
-                      style={{ margin: 5, alignItems: "center" }}
-                      key={index}
-                    >
-                      <Image
-                        style={{
-                          backgroundColor: "#ccc",
-                          height: 60,
-                          width: 60,
-                          borderRadius: 100,
-                        }}
-                        source={value.fotosTienda[0]}
-                      ></Image>
-                      <Text
-                        style={{
-                          color: "white",
-                          fontFamily: "Inter_400Regular",
-                        }}
-                      >
-                        {value.nombre}
-                      </Text>
-                    </TouchableOpacity>
-                  );
-                })}
-            </ScrollView>
-          </View>
-          <View style={style.subtitle}>
-            <Text style={style.text_etiqueta}>Más Pedidos</Text>
-            <Pressable onPress={() => navigation.navigate("(seller)")}>
-              <Text>Ir a Vendedor</Text>
-            </Pressable>
-            <Image
-              style={style.chevron}
-              contentFit="cover"
-              transition={1000}
-              source={require("../../assets/images/chevron.svg")}
-            ></Image>
           </View>
           <View style={{ flexDirection: "row" }}>
             <View

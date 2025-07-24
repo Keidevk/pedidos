@@ -1,9 +1,4 @@
-<<<<<<< HEAD
-import { Image } from "expo-image";
-import { Tabs } from "expo-router";
 
-export default function MainLayout() {
-=======
 import { Image } from 'expo-image';
 import { Tabs, useSegments } from "expo-router";
 
@@ -12,13 +7,6 @@ export default function MainLayout() {
   return (
     <Tabs
       screenOptions={{
-<<<<<<< HEAD
-        headerShown: false,
-        tabBarActiveTintColor: "red",
-        tabBarStyle: {
-          // backgroundColor:'',
-          transitionDuration: "0ms",
-=======
         headerShown:false,
         tabBarActiveTintColor:'red',
         tabBarStyle:{
