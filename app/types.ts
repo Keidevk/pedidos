@@ -1,30 +1,28 @@
 export interface Tienda {
-  id: number;
-  Nombre: string;
-  Descripcion: string;
-  Ubicacion: string;
-  HorarioApertura: string; // ISO 8601 format
-  HorarioCierre: string;   // ISO 8601 format
-  Categoria: string;
-  TiempoEntregaPromedio: number; // en horas
-  costoEnvio: string; // podría cambiar a number si se prefiere precisión decimal
-  rating: string;     // lo mismo aquí si planeas hacer cálculos, puede convertirse a number
-  fotos_tienda: string[];
+  id: string;
+  userId: number;
+  nombre: string;
+  descripcion: string;
+  ubicacion: string;
+  horarioApertura: string; // Podrías usar Date si transformas el string
+  horarioCierre: string;   // Igual que arriba
+  tiempoEntregaPromedio: number;
+  costoEnvio: string;  // Si siempre es un número, podrías cambiarlo a `number`
+  rating: string;      // También podría ser `number` si es decimal
+  fotosTienda: string[]; // Array de URLs
 }
 
 export interface Producto {
-  id: number;
-  tiendaId: number;
+  id: string;
   nombre: string;
   descripcion: string;
-  precio: string;
-  precioPromocion: string;
-  categoria: string;
-  ingrediente: string;
-  disponibilidad: boolean;
-  tiempoPreparacion: number;
-  fotosProducto: string[];
-  destacado: boolean;
+  precio: number;
+  stock_actual: number;
+  stock_minimo: number;
+  imagen_url: string;
+  activo: boolean;
+  tiendaId: string;
+  categoriaId: string;
 }
 export type CarritoItem = {
     tiendaId:string;

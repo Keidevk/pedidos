@@ -2,6 +2,7 @@
 import { Inter_300Light, Inter_600SemiBold, Inter_900Black } from "@expo-google-fonts/inter";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFonts } from "expo-font";
+import { Image } from "expo-image";
 import { Link, Redirect, router } from "expo-router";
 import { Dispatch, useEffect, useState } from "react";
 import { StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
@@ -11,7 +12,7 @@ import { getAuth } from "../utils";
 
 
 export default function Index() {
-  const [cI, onChangeCi] = useState("")
+  const [email, onChangeEmail] = useState("")
   const [password, onChangePassword] = useState("")
   const insets = useSafeAreaInsets();
   const [isLogged,setLogged] = useState(false)
@@ -26,14 +27,15 @@ export default function Index() {
     const response = await fetch(`${process.env.EXPO_PUBLIC_HOST}/api/auth`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ cI, password })
+      body: JSON.stringify({email, password })
     });
     
     const data = await response.json();
     
     if(response.ok && data.token) {
       setLogged(true)
-      await AsyncStorage.setItem('@auth_token', data.token); // Guarda token
+      await AsyncStorage.setItem('@auth_token', data.token);
+      await AsyncStorage.setItem('@userId',data.userId) // Guarda token
       router.replace('/(main)/main');
     }
   } catch(error) {
@@ -49,14 +51,19 @@ export default function Index() {
       </View>
       :
       <View>
+        <View style={{height:160,alignItems:'center'}}>
+          <Image source={require('../../assets/images/logo.svg')}
+          contentFit="contain"
+          style={{width:200,height:120}} />
+        </View>
         <Text style={style.textTitle}>Iniciar Sesión</Text>
         <View style={style.boxShadow}>
           <TextInput
-            inputMode="tel"
-            placeholder="Cedúla"
+            inputMode="email"
+            placeholder="Correo Electrónico"
             style={style.textinput} 
-            value={cI}
-            onChangeText={onChangeCi}>
+            value={email}
+            onChangeText={onChangeEmail}>
           </TextInput>
         </View>
         <View style={style.boxShadow}>
@@ -74,7 +81,7 @@ export default function Index() {
           boxShadow:[{blurRadius:4,offsetX:1,offsetY:2,color:'#828282'}],
 
         }}>
-          <Text onPress={()=>handlerLoggin(setLogged)} style={style.textButton}>Continue</Text>
+          <Text onPress={()=>handlerLoggin(setLogged)} style={style.textButton}>Continuar</Text>
         </TouchableOpacity>
         <Text style={{textAlign:'right',marginRight:25,textDecorationLine:'underline',marginBottom:'60%',fontFamily:'Inter_300Light',marginTop:5}}>¿Olvidaste tu Contraseña?</Text>
         <TouchableOpacity>
@@ -94,7 +101,6 @@ export default function Index() {
 }
 const style = StyleSheet.create({
   textTitle:{
-    marginTop:140,
     fontSize:16,
     textAlign:'center',
     marginBottom:20,

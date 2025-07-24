@@ -14,17 +14,17 @@ import { CarritoItem } from "../types";
 import { getShopById, handlerMain } from "../utils";
 
 interface Tienda {
-  id: number;
-  Nombre: string;
-  Descripcion: string;
-  Ubicacion: string;
-  HorarioApertura: string; // ISO 8601 format
-  HorarioCierre: string; // ISO 8601 format
-  Categoria: string;
-  TiempoEntregaPromedio: number; // en horas
+  id: string;
+  userId:number;
+  nombre: string;
+  descripcion: string;
+  ubicacion: string;
+  horarioApertura: string; // ISO 8601 format
+  horarioCierre: string;   // ISO 8601 format
+  tiempoEntregaPromedio: number; // en horas
   costoEnvio: string; // podría cambiar a number si se prefiere precisión decimal
-  rating: string; // lo mismo aquí si planeas hacer cálculos, puede convertirse a number
-  fotos_tienda: string[];
+  rating: string;     // lo mismo aquí si planeas hacer cálculos, puede convertirse a number
+  fotosTienda: string[];
 }
 
 const fetchTiendas = async (ids: string[]): Promise<Tienda[]> => {
@@ -61,6 +61,9 @@ export default function CarShop() {
     });
   }, [carshopping]);
 
+    function handlerCarrito(id:string){
+        router.push({pathname:'/carrito/[id]',params:{id}})
+    }
   const groupedByTienda: Record<string, number> = carshopping.reduce(
     (acc: Record<string, number>, item: CarritoItem) => {
       const { tiendaId, cantidad } = item;
@@ -69,10 +72,6 @@ export default function CarShop() {
     },
     {}
   );
-
-  function handlerCarrito(id: number) {
-    router.push({ pathname: "/carrito/[id]", params: { id } });
-  }
 
   return (
     <View style={{ paddingTop: insets.top }}>
@@ -118,7 +117,7 @@ export default function CarShop() {
                     <Text
                       style={{ fontSize: 20, fontFamily: "Inter_600SemiBold" }}
                     >
-                      {shop.Nombre}
+                      {shop.nombre}
                     </Text>
                     <Text
                       style={{ color: "#aaa", fontFamily: "Inter_300Light" }}

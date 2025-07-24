@@ -21,17 +21,17 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 interface Tienda {
-  id: number;
-  Nombre: string;
-  Descripcion: string;
-  Ubicacion: string;
-  HorarioApertura: string; // ISO 8601 format
-  HorarioCierre: string; // ISO 8601 format
-  Categoria: string;
-  TiempoEntregaPromedio: number; // en horas
+  id: string;
+  userId:number;
+  nombre: string;
+  descripcion: string;
+  ubicacion: string;
+  horarioApertura: string; // ISO 8601 format
+  horarioCierre: string;   // ISO 8601 format
+  tiempoEntregaPromedio: number; // en horas
   costoEnvio: string; // podría cambiar a number si se prefiere precisión decimal
-  rating: string; // lo mismo aquí si planeas hacer cálculos, puede convertirse a number
-  fotos_tienda: string[];
+  rating: string;     // lo mismo aquí si planeas hacer cálculos, puede convertirse a number
+  fotosTienda: string[];
 }
 
 async function getItem(item: string, setState: Dispatch<string>) {
@@ -45,10 +45,10 @@ async function getItem(item: string, setState: Dispatch<string>) {
     });
 }
 
-async function getShops(setState: Dispatch<Tienda[]>) {
-  const response = await fetch("http://192.168.3.6:3000/api/shop/");
-  const data = await response.json();
-  setState(data);
+async function getShops(setState:Dispatch<Tienda[]>){
+    const response = await fetch(`${process.env.EXPO_PUBLIC_HOST}/api/shop/`)
+    const data = await response.json()
+    setState(data)
 }
 
 export default function MenuPrincipal() {
@@ -68,12 +68,12 @@ export default function MenuPrincipal() {
     });
   };
 
-  const handlerShopById = async (id: number) => {
-    router.push({ pathname: `/(main)/shop/[id]`, params: { id } });
-  };
-  function handlerShops() {
-    router.push("/(main)/shops");
-  }
+    const handlerShopById = async (id:string) => {
+        router.push({pathname:`/(main)/shop/[id]`,params:{id}});
+    };
+    function handlerShops(){
+        router.push('/(main)/shops')
+    }
 
   const navigation = useNavigation();
 
@@ -81,7 +81,71 @@ export default function MenuPrincipal() {
     <View style={{ paddingTop: insets.top }}>
       {isLogged ? (
         <View>
-          <View style={style.container_input}>
+            <View style={style.container_input}>
+            <Image 
+                style={style.image_input}
+                contentFit="cover"
+                source={require("../../assets/images/search.svg")}/>
+            <TextInput
+                style={style.text_input}
+                placeholder="Buscar"
+            ></TextInput>
+            </View>
+            <View style={{flexDirection:'row',marginLeft:'4%'}}>
+                <TouchableOpacity onPress={(()=>handlerCategory('Almuerzo'))} style={style.button_etiqueta}>
+                    <Image
+                    contentFit="cover"
+                    style={style.image_etiqueta}
+                    source={require('../../assets/images/tenedor.png')}></Image>
+                    <Text style={style.text_etiqueta}>Almuerzos</Text>
+                </TouchableOpacity> 
+                <TouchableOpacity onPress={(()=>handlerCategory('Postres'))} style={style.button_etiqueta}>
+                    <Image
+                    contentFit="cover"
+                    style={style.image_etiqueta}
+                    source={require('../../assets/images/cookies-32-regular.svg')}></Image>
+                    <Text style={style.text_etiqueta}>Postres</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={style.button_etiqueta}>
+                    <Image
+                    contentFit="cover"
+                    style={style.image_etiqueta}
+                    source={require('../../assets/images/hamburguesas.png')}></Image>
+                    <Text style={style.text_etiqueta}>Cena</Text>
+                </TouchableOpacity>
+            </View>
+            <View style={style.promo}>
+                <Image
+                    contentFit="fill"
+                    style={{height:160}}
+                    source={require('../../assets/images/promo.png')}></Image>
+
+            </View>
+            <TouchableOpacity onPress={handlerShops} style={style.subtitle}>
+                <Text style={style.text_etiqueta}>Tiendas</Text>
+                <Image
+                style={style.chevron}
+                contentFit="cover"
+                source={require('../../assets/images/chevron.svg')}></Image>
+            </TouchableOpacity>
+            <View style={style.shops}>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                {
+                shops && shops.map((value,index)=>{
+                    return (
+                    <TouchableOpacity onPress={()=>handlerShopById(value.id)} style={{margin:5,alignItems:'center'}} key={index}>
+                        <Image
+                        style={{backgroundColor:"#ccc",height:60,width:60,borderRadius:100}}
+                        source={value.fotosTienda[0]}
+                        ></Image>
+                        <Text style={{color:'white',fontFamily:'Inter_400Regular'}}>{value.nombre}</Text>   
+                    </TouchableOpacity>)
+                })    
+                }
+                </ScrollView>
+            </View>
+            <View style={style.subtitle}>
+            <Text style={style.text_etiqueta}>Más Pedidos</Text>
             <Image
               style={style.image_input}
               contentFit="cover"
@@ -150,7 +214,7 @@ export default function MenuPrincipal() {
                           width: 60,
                           borderRadius: 100,
                         }}
-                        source={value.fotos_tienda[0]}
+                        source={value.fotosTienda[0]}
                       ></Image>
                       <Text
                         style={{
@@ -158,7 +222,7 @@ export default function MenuPrincipal() {
                           fontFamily: "Inter_400Regular",
                         }}
                       >
-                        {value.Nombre}
+                        {value.nombre}
                       </Text>
                     </TouchableOpacity>
                   );
