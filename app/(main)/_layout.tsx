@@ -3,7 +3,8 @@ import { Image } from 'expo-image';
 import { Tabs, useSegments } from "expo-router";
 
 export default function MainLayout() {
-  const segment = useSegments()
+  const segment = useSegments();
+  console.log(segment);
   return (
     <Tabs
       screenOptions={{
