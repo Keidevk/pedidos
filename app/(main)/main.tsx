@@ -8,17 +8,17 @@ import { ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 interface Tienda {
-  id: number;
-  Nombre: string;
-  Descripcion: string;
-  Ubicacion: string;
-  HorarioApertura: string; // ISO 8601 format
-  HorarioCierre: string;   // ISO 8601 format
-  Categoria: string;
-  TiempoEntregaPromedio: number; // en horas
+  id: string;
+  userId:number;
+  nombre: string;
+  descripcion: string;
+  ubicacion: string;
+  horarioApertura: string; // ISO 8601 format
+  horarioCierre: string;   // ISO 8601 format
+  tiempoEntregaPromedio: number; // en horas
   costoEnvio: string; // podría cambiar a number si se prefiere precisión decimal
   rating: string;     // lo mismo aquí si planeas hacer cálculos, puede convertirse a number
-  fotos_tienda: string[];
+  fotosTienda: string[];
 }
 
 async function getItem(item:string,setState:Dispatch<string>){
@@ -31,7 +31,7 @@ async function getItem(item:string,setState:Dispatch<string>){
 }
 
 async function getShops(setState:Dispatch<Tienda[]>){
-    const response = await fetch('http://192.168.3.6:3000/api/shop/')
+    const response = await fetch(`${process.env.EXPO_PUBLIC_HOST}/api/shop/`)
     const data = await response.json()
     setState(data)
 }
@@ -50,7 +50,7 @@ export default function MenuPrincipal(){
         router.push({pathname:'/(main)/category/[category]',params:{category}});
     };
 
-    const handlerShopById = async (id:number) => {
+    const handlerShopById = async (id:string) => {
         router.push({pathname:`/(main)/shop/[id]`,params:{id}});
     };
     function handlerShops(){
@@ -93,10 +93,14 @@ export default function MenuPrincipal(){
                     contentFit="cover"
                     style={style.image_etiqueta}
                     source={require('../../assets/images/hamburguesas.png')}></Image>
-                    <Text style={style.text_etiqueta}>Hamburguesas</Text>
+                    <Text style={style.text_etiqueta}>Cena</Text>
                 </TouchableOpacity>
             </View>
             <View style={style.promo}>
+                <Image
+                    contentFit="fill"
+                    style={{height:160}}
+                    source={require('../../assets/images/promo.png')}></Image>
 
             </View>
             <TouchableOpacity onPress={handlerShops} style={style.subtitle}>
@@ -114,9 +118,9 @@ export default function MenuPrincipal(){
                     <TouchableOpacity onPress={()=>handlerShopById(value.id)} style={{margin:5,alignItems:'center'}} key={index}>
                         <Image
                         style={{backgroundColor:"#ccc",height:60,width:60,borderRadius:100}}
-                        source={value.fotos_tienda[0]}
+                        source={value.fotosTienda[0]}
                         ></Image>
-                        <Text style={{color:'white',fontFamily:'Inter_400Regular'}}>{value.Nombre}</Text>   
+                        <Text style={{color:'white',fontFamily:'Inter_400Regular'}}>{value.nombre}</Text>   
                     </TouchableOpacity>)
                 })    
                 }

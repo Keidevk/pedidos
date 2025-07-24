@@ -15,12 +15,13 @@ export default function RepartidorRegistrar(){
      return null;
    }      
    return(<View style={{ flex: 1, paddingTop: insets.top,}}>
+    
      <Text style={style.title}>Repartidor</Text>
      <Text style={style.subtitle}>Completa la información a continuación para para acceder a la aplicación</Text>
      <View style={style.textinput}>
        <TextInput
          style={{fontFamily:'Inter_300Light'}}
-         placeholder="Cedúla"
+         placeholder="Cedula"
          value={cedula}
          onChangeText={onChangeCedula}>
        </TextInput>

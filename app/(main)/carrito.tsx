@@ -11,17 +11,17 @@ import { getShopById, handlerMain } from "../utils";
 
 
 interface Tienda {
-  id: number;
-  Nombre: string;
-  Descripcion: string;
-  Ubicacion: string;
-  HorarioApertura: string; // ISO 8601 format
-  HorarioCierre: string;   // ISO 8601 format
-  Categoria: string;
-  TiempoEntregaPromedio: number; // en horas
+  id: string;
+  userId:number;
+  nombre: string;
+  descripcion: string;
+  ubicacion: string;
+  horarioApertura: string; // ISO 8601 format
+  horarioCierre: string;   // ISO 8601 format
+  tiempoEntregaPromedio: number; // en horas
   costoEnvio: string; // podría cambiar a number si se prefiere precisión decimal
   rating: string;     // lo mismo aquí si planeas hacer cálculos, puede convertirse a number
-  fotos_tienda: string[];
+  fotosTienda: string[];
 }
 
 
@@ -67,7 +67,7 @@ export default function CarShop(){
         },
     {});
 
-    function handlerCarrito(id:number){
+    function handlerCarrito(id:string){
         router.push({pathname:'/carrito/[id]',params:{id}})
     }
 
@@ -88,7 +88,7 @@ export default function CarShop(){
                 <View key={index} style={{flexDirection:'row',margin:10,borderRadius:10,shadowRadius:10,boxShadow:[{blurRadius:4, offsetX:1,offsetY:2,color:'#828282'}],padding:10}}>
                     <View style={{height:75,width:80,backgroundColor:'#ccc'}}></View>
                     <View style={{flexDirection:'column',marginLeft:10}}>
-                        <Text style={{fontSize:20,fontFamily:'Inter_600SemiBold'}}>{shop.Nombre}</Text>
+                        <Text style={{fontSize:20,fontFamily:'Inter_600SemiBold'}}>{shop.nombre}</Text>
                         <Text style={{color:'#aaa',fontFamily:'Inter_300Light'}}>{cantidad} Items</Text>
                         <View style={{flexDirection:'row',marginTop:5}}> 
                             <TouchableOpacity style={{width:75,alignItems:'center', borderWidth:1,borderRadius:10,marginRight:10}}>

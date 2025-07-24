@@ -7,6 +7,11 @@ export default function Registrar(){
       const insets = useSafeAreaInsets();
     
     return (<View style={{flex:1,paddingTop: insets.top,}}>
+        <View style={{height:160,alignItems:'center'}}>
+          <Image source={require('../../assets/images/logo.svg')}
+          contentFit="contain"
+          style={{width:200,height:120}} />
+        </View>
         <Text style={styles.title}>Crear cuenta</Text>
         <Text style={styles.subtitle}>¿Qué modo deseas usar?</Text>
         <TouchableOpacity style={styles.container}>
@@ -38,7 +43,6 @@ title:{
     textAlign:'center',
     fontFamily:'Inter_900Black',
     fontSize:16,
-    marginTop:140
 },
 subtitle:{
     textAlign:'center',

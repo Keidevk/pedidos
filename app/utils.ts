@@ -29,7 +29,7 @@ export async function getAuth(setState:Dispatch<boolean>){
 }
 
 export async function getShopById(id:string){
-    const response = await fetch(`http://192.168.3.6:3000/api/shop/${id}`)
+    const response = await fetch(`${process.env.EXPO_PUBLIC_HOST}/api/shop/${id}`)
     const data = await response.json()
     return data
 }

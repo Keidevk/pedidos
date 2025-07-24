@@ -1,10 +1,10 @@
 import { Producto, Tienda } from "@/app/types";
-import { handlerMain } from "@/app/utils";
+import { getItem, handlerMain } from "@/app/utils";
 import { Inter_300Light, Inter_500Medium, Inter_600SemiBold, Inter_700Bold } from "@expo-google-fonts/inter";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFonts } from "expo-font";
 import { Image } from "expo-image";
-import { useFocusEffect, useLocalSearchParams } from "expo-router";
+import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
 import { KeyboardAvoidingView, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -17,6 +17,8 @@ type CarritoItem = {
 export default function ItemCarrito(){
     const {id} = useLocalSearchParams()
     const insets = useSafeAreaInsets();
+    const [userId,setUserId] = useState('')
+    const [notas, setNotas] = useState('')
     const [cantidad,setCantidad] = useState<CarritoItem[]>([])
     const [productosFiltrados, setProductosFiltrados] = useState<Producto[]>([]);
     const [shopData, setShopData] = useState<Tienda|null>(null)
@@ -28,7 +30,71 @@ export default function ItemCarrito(){
 
     const hasRunRef = useRef(false);
 
-    
+function handlerPayment({
+  id, 
+  tiendaId,
+  metodoPago,
+  carrito,
+  productosFiltrados,
+  notas,
+}: {
+  id: string | number;
+  tiendaId: string | string[];
+  metodoPago: string;
+  carrito: CarritoItem[];
+  productosFiltrados: Producto[];
+  notas?: string;
+}) {
+  // Construye los detalles con cantidad y precio unitario
+  const detalles = carrito.map((item) => {
+    const producto = productosFiltrados.find(p => p.id === item.productoId)
+    const precio_unitario = producto?.precio ?? 0
+
+    return {
+      productoId: item.productoId,
+      cantidad: item.cantidad,
+      precio_unitario
+    }
+  })
+
+  // Calcula el total
+  const total = detalles.reduce(
+    (sum, detalle) => sum + detalle.precio_unitario * detalle.cantidad,
+    0
+  )
+
+  router.push({
+    pathname: '/(main)/payment/[id]',
+    params: {
+      id,
+      tiendaId,
+      metodoPago,
+      total: total.toString(),
+      detalles: JSON.stringify(detalles),
+      notas: notas ?? '',
+    },
+  })
+}
+
+    function handlerAddOrRemoveProduct(value:string,productId:string){
+      if(value === "+"){
+        const carrito = cantidad.map(item => 
+          item.productoId === productId 
+          ? {...item, cantidad: item.cantidad + 1 }
+          : item 
+        )
+        setCantidad(carrito)
+        AsyncStorage.setItem(`carrito_${id}`,JSON.stringify(carrito))
+      }else{
+        const carrito = cantidad.map(item => 
+          item.productoId === productId 
+          ? {...item, cantidad: item.cantidad - 1 }
+          : item 
+        )
+        setCantidad(carrito)
+        AsyncStorage.setItem(`carrito_${id}`,JSON.stringify(carrito))
+      }
+    }
     
     const getShopName = async () => {
       try{
@@ -49,9 +115,10 @@ export default function ItemCarrito(){
        setCantidad(carrito)
        
        const filterData = {
-         tiendaId: parseInt(id[0]),
+         tiendaId: id,
          ids: carrito.map(item => item.productoId),
        };
+       console.log(filterData)
        try {
          const response = await fetch(`${process.env.EXPO_PUBLIC_HOST}/api/product/preorder/`, {
            method: 'POST',
@@ -72,12 +139,18 @@ export default function ItemCarrito(){
          return null;
        }
      };
+
       useEffect(() => {
-        const total = productosFiltrados.reduce((sum, product) => {
-          return sum + parseFloat(product.precio);
-        }, 0);
-        setPrice(total);
-      }, [productosFiltrados]);
+        getItem('@userId',setUserId)
+        const total = productosFiltrados.reduce((sum, producto) => {
+          const item = cantidad.find(c => c.productoId === producto.id)
+          const cantidadProducto = item?.cantidad ?? 0
+          return sum + (producto.precio * cantidadProducto)
+        }, 0)
+
+        setPrice(total)
+        // console.log("Subtotal:", total)
+      }, [productosFiltrados, cantidad])
 
 
       useFocusEffect(
@@ -87,10 +160,14 @@ export default function ItemCarrito(){
           setLoad(false)
 
       return () => {
+        // console.log('saliendo....')
+        console.log(cantidad)
+        // AsyncStorage.clear()
           setLoad(true)
           hasRunRef.current = false
+          // AsyncStorage.setItem(`carrito_${id}`,JSON.stringify(cantidad))
         };
-      }, [id[0]])
+      }, [id])
       );
 
     return(
@@ -107,13 +184,13 @@ export default function ItemCarrito(){
           <Text style={{fontFamily:'Inter_600SemiBold'}}>Carrito</Text>    
         </TouchableOpacity>
         <Text style={{marginLeft:10,fontFamily:'Inter_700Bold',fontSize:20}}>Detalles del Pedido</Text>
-        <Text style={{marginLeft:10,fontFamily:'Inter_300Light',fontSize:15}}>{shopData ? shopData.Nombre:"Loading...."}</Text>
+        <Text style={{marginLeft:10,fontFamily:'Inter_300Light',fontSize:15}}>{shopData ? shopData.nombre:"Loading...."}</Text>
         <KeyboardAvoidingView
               behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-        <ScrollView showsVerticalScrollIndicator={false} style={{height:340}}> 
+        <ScrollView showsVerticalScrollIndicator={false} style={{height:350}}> 
             {productosFiltrados && productosFiltrados.map((product,index)=>{
-              const cantidadItem = cantidad.find(item => parseInt(item.productoId) === product.id);
-              const amount = cantidadItem?.cantidad ?? 0;
+              const cantidadItem = cantidad.find(item => item.productoId === product.id);
+              const amount = cantidadItem?.cantidad ?? 1;
                 return(<View key={index} style={{marginBottom:10,flexDirection:'row',height:103,paddingHorizontal:10,marginHorizontal:5,borderRadius:10,alignItems:'center',boxShadow:[{blurRadius:4, offsetX:1,offsetY:2,color:'#828282AA'}],}}>
                   <View style={{backgroundColor:"#ccc",height:62,width:62,borderRadius:10,marginRight:10}}>
                   {/* Image Product */}
@@ -125,11 +202,11 @@ export default function ItemCarrito(){
                     </View>
                   </View>
                   <View style={{flex:1,justifyContent:'flex-end',flexDirection:'row',}}>
-                        <TouchableOpacity style={{height:26,width:26}}>
+                        <TouchableOpacity onPress={()=>handlerAddOrRemoveProduct("+",product.id.toString())} style={{height:26,width:26}}>
                           <Text style={{textAlign:'center',color:'#FF0000',fontWeight:'bold'}}>+</Text>
                         </TouchableOpacity>
                         <Text style={{height:26,width:26,textAlign:'center'}}>{amount}</Text>
-                        <TouchableOpacity style={{height:26,width:26,backgroundColor:'#FF0000',borderRadius:10}}>
+                        <TouchableOpacity onPress={()=>handlerAddOrRemoveProduct("-",product.id.toString())} style={{height:26,width:26,backgroundColor:'#FF0000',borderRadius:10}}>
                           <Text style={{textAlign:'center',color:'white',fontWeight:'bold'}}>-</Text>
                         </TouchableOpacity>
                     </View>
@@ -156,7 +233,7 @@ export default function ItemCarrito(){
                 </TouchableOpacity>  
               </View>
               <View style={{borderRadius:20,paddingLeft:10,borderWidth:1,borderColor:'#828282',marginHorizontal:13,marginTop:10,height:48,marginBottom:10}}>
-                <TextInput style={{flex:1}} placeholder="Nota (Opcional)"></TextInput>
+                <TextInput value={notas} onChangeText={setNotas} style={{flex:1}} placeholder="Nota (Opcional)"></TextInput>
               </View>  
             </View> 
           </View>
@@ -181,10 +258,16 @@ export default function ItemCarrito(){
                 <View style={{backgroundColor:'#D61355',height:'25%',borderRadius:20,padding:10,flexDirection:'row'}}>
                   <View style={{flex:1,flexDirection:'row',paddingBottom:30}}>
                     <Text style={{color:'white',fontSize:14,marginRight:10,marginVertical:'auto'}}>Total</Text>
-                    <Text style={{color:'white',fontSize:24,fontWeight:'medium',marginVertical:'auto'}}>${isDelivery ? price + 3 : price}</Text>
+                    <Text style={{color:'white',fontSize:24,fontWeight:'medium',marginVertical:'auto'}}>${isDelivery ? price  + 3 : price}</Text>
                   </View>
                   <View style={{flex:1,flexDirection:'row',justifyContent:'flex-end',paddingBottom:30}}>
-                    <TouchableOpacity style={{flex:1,marginVertical:'auto',backgroundColor:'#FFE8EC',height:50,borderRadius:20}}>
+                    <TouchableOpacity onPress={()=>{handlerPayment({
+                      id:userId,
+                      tiendaId:id,
+                      carrito:cantidad,
+                      productosFiltrados,
+                      notas,
+                      metodoPago:'efectivo'})}} style={{flex:1,marginVertical:'auto',backgroundColor:'#FFE8EC',height:50,borderRadius:20}}>
                       <Text style={{textAlign:'center',marginVertical:'auto',fontSize:16,fontWeight:'semibold',color:'#828282'}}>Pagar</Text>
                     </TouchableOpacity>
                   </View>
