@@ -7,14 +7,30 @@ import {
 } from "@expo-google-fonts/inter";
 import { Image } from "expo-image";
 import { useNavigation } from "expo-router";
+import { useEffect, useState } from "react";
 import { ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { NativeStackNavigationProp } from "react-native-screens/lib/typescript/native-stack/types";
+import { getItem } from "../utils";
 
 export type RootStackParamList = {
   sellerOrder: undefined; // o `undefined` si no recibe params
   sellerRequests: undefined;
   sellerStats: undefined;
   sellerReviews: undefined;
+};
+
+type Shop = {
+  id: string;
+  userId: number;
+  nombre: string;
+  descripcion: string;
+  ubicacion: string;
+  horarioApertura: string;
+  horarioCierre: string;
+  tiempoEntregaPromedio: number;
+  costoEnvio: string;
+  rating: string;
+  fotosTienda: string[]; // si luego agregas imágenes, ajusta el tipo si es necesario
 };
 
 export default function MenuPrincipal() {
@@ -24,6 +40,46 @@ export default function MenuPrincipal() {
     Inter_400Regular,
     Inter_700Bold,
   });
+  const [shop, setShop] = useState<Shop | null>(null);
+
+  const formatearHora = (iso: string) => {
+    try {
+      return new Date(iso).toLocaleTimeString("es-VE", {
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+    } catch {
+      return "Hora inválida";
+    }
+  };
+
+  const [shopId, setShopId] = useState("0");
+
+  console.warn(shopId);
+
+  useEffect(() => {
+    getItem("@userId", setShopId);
+    const fetchShop = async () => {
+      try {
+        const res = await fetch(
+          `${process.env.EXPO_PUBLIC_HOST}/api/shop/${shopId}`
+        );
+        if (!res.ok) throw new Error("Error al traer datos");
+        console.warn(`${process.env.EXPO_HOST_URL}/api/shop/${shopId}`);
+        const data = await res.json();
+        console.warn(data);
+
+        setShop(data);
+      } catch (err) {
+        console.error("❌ Error al traer tienda", err);
+      }
+    };
+
+    if (shopId !== "0") {
+      fetchShop();
+    }
+  }, []);
+
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   return (
@@ -53,12 +109,10 @@ export default function MenuPrincipal() {
         />
         <View style={{ borderBottomWidth: 1, borderBottomColor: "#9F9F9F" }}>
           <Text style={{ fontFamily: "Inter_400Regular", fontSize: 16 }}>
-            Nombre de la tienda
+            <Text>{shop?.nombre ?? "Cargando..."}</Text>
           </Text>
           <Text style={{ fontFamily: "Inter_400Regular", fontSize: 16 }}>
-            ¡Bienvenidos a [Nombre de tu Tienda]! Encuentra [menciona el
-            producto o servicio principal] y mucho más ¡Visítanos o explora
-            nuestra app para descubrir ofertas increíbles!
+            <Text>{shop?.descripcion ?? "Sin descripción aún"}</Text>
           </Text>
           <View style={{ flexDirection: "row", gap: 2 }}>
             <Image
@@ -75,7 +129,7 @@ export default function MenuPrincipal() {
                 fontSize: 12,
               }}
             >
-              Ubicación
+              <Text>{shop?.ubicacion ?? "Ubicación no disponible"}</Text>{" "}
             </Text>
           </View>
           <View style={{ flexDirection: "row", gap: 2 }}>
@@ -93,9 +147,15 @@ export default function MenuPrincipal() {
                 fontSize: 12,
               }}
             >
-              Horario: 00:00am - 00:00pm
+              <Text>
+                {shop?.horarioApertura
+                  ? `${formatearHora(
+                      shop.horarioApertura
+                    )} hasta las ${formatearHora(shop.horarioCierre)}`
+                  : "Sin horario aún"}
+              </Text>
             </Text>
-            Deayunos Almuerzos Cenas Postres Bebidas
+            <Text>{shop?.ubicacion ?? "Ubicación no disponible"}</Text>
           </View>
           <View style={{}}>
             <TouchableOpacity

@@ -74,8 +74,9 @@ export default function SellerStats() {
         }
 
         const response = await fetch(
-          `${process.env.EXPO_PUBLIC_HOST}/getStats?${query}`
+          `${process.env.EXPO_PUBLIC_HOST}/api/stats/getStats?${query}`
         );
+        console.log(response);
         const json = await response.json();
         console.log("⚠️ Respuesta cruda:", json); // En Expo Go no lo verás, así que mostralo en pantalla:
         if (!Array.isArray(json)) {
@@ -87,14 +88,14 @@ export default function SellerStats() {
           chartPeriod === "week"
             ? processWeeklyData(
                 json.map((item) => ({
-                  day_of_week: parseInt(item.day_of_week),
+                  day_of_week: parseInt(item.day_of_week, 10), // <-- asegurar que sea número
                   total: item.total,
                 }))
               )
             : chartPeriod === "month"
             ? processMonthlyData(
                 json.map((item) => ({
-                  day_of_month: new Date(item.day).getDate(),
+                  day_of_month: item.day ? new Date(item.day).getDate() : 0,
                   total: item.total,
                 })),
                 currentDate
@@ -262,10 +263,13 @@ export default function SellerStats() {
           <View
             style={{
               flexDirection: "row",
-              gap: 10,
             }}
           >
-            <View>
+            <View
+              style={{
+                width: 150,
+              }}
+            >
               <Text
                 style={{
                   textTransform: "uppercase",
@@ -284,14 +288,10 @@ export default function SellerStats() {
                   color: "#32343E",
                 }}
               >
-                $2,241
+                {chartData.reduce((acc, item) => acc + item.value, 0)}$
               </Text>
             </View>
-            <View
-              style={{
-                justifyContent: "center",
-              }}
-            >
+            <View style={{}}>
               <RNPickerSelect
                 onValueChange={(value) => setChartPeriod(value)}
                 placeholder={{ label: "Semanal", value: PeriodSells.week }}
@@ -349,62 +349,42 @@ export default function SellerStats() {
                 )}
               />
             </View>
-            <View
-              style={{
-                justifyContent: "center",
-              }}
-            >
-              <Text
-                style={{
-                  borderBottomWidth: 1,
-                  borderBottomColor: "#E94B64",
-                  color: "#E94B64",
-                  fontFamily: "Inter_400Regular",
-                  fontSize: 14,
-                }}
-              >
-                Ver detalles
-              </Text>
-            </View>
           </View>
           <View
             style={{
               overflow: "hidden",
             }}
           >
-            {loading ? (
-              <ActivityIndicator size="large" color="#D61355" />
-            ) : chartData.length === 0 ? (
-              <Text
-                style={{
-                  fontFamily: "Inter_400Regular",
-                  color: "#999",
-                  textAlign: "center",
-                }}
-              >
-                No hay datos disponibles
-              </Text>
-            ) : (
-              <BarChart
-                data={chartData}
-                adjustToWidth
-                parentWidth={screenWidth - 40}
-                barWidth={18}
-                spacing={20}
-                yAxisThickness={0}
-                hideRules
-                height={200}
-                isAnimated
-                animationDuration={300}
-                showGradient
-                barBorderTopLeftRadius={6}
-                barBorderTopRightRadius={6}
-              />
-            )}
             <ScrollView horizontal>
-              <Text style={{ fontSize: 12, fontFamily: "Inter_400Regular" }}>
-                {JSON.stringify(chartData, null, 2)}
-              </Text>
+              {loading ? (
+                <ActivityIndicator size="large" color="#D61355" />
+              ) : chartData.length === 0 ? (
+                <Text
+                  style={{
+                    fontFamily: "Inter_400Regular",
+                    color: "#999",
+                    textAlign: "center",
+                  }}
+                >
+                  No hay datos disponibles
+                </Text>
+              ) : (
+                <BarChart
+                  data={chartData}
+                  adjustToWidth
+                  parentWidth={screenWidth - 40}
+                  barWidth={18}
+                  spacing={20}
+                  yAxisThickness={0}
+                  hideRules
+                  height={200}
+                  isAnimated
+                  animationDuration={300}
+                  showGradient
+                  barBorderTopLeftRadius={6}
+                  barBorderTopRightRadius={6}
+                />
+              )}
             </ScrollView>
           </View>
         </View>
@@ -427,7 +407,6 @@ export default function SellerStats() {
       >
         <View
           style={{
-            justifyContent: "space-between",
             flexDirection: "row",
           }}
         >
