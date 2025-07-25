@@ -6,19 +6,11 @@ import {
   useFonts,
 } from "@expo-google-fonts/inter";
 import { Image } from "expo-image";
-import { useNavigation } from "expo-router";
 import { useSQLiteContext } from "expo-sqlite";
 import React, { useEffect } from "react";
-import {
-  Dimensions,
-  ScrollView,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { Dimensions, ScrollView, Text, View } from "react-native";
 import { BarChart, barDataItem } from "react-native-gifted-charts";
 import RNPickerSelect from "react-native-picker-select";
-import { NativeStackNavigationProp } from "react-native-screens/lib/typescript/native-stack/types";
 import {
   processMonthlyData,
   processWeeklyData,
@@ -42,14 +34,6 @@ type TransactionsType = {
 type weeklySummary = {
   day_of_week: number;
   total: number;
-};
-
-// types/navigation.ts
-export type RootStackParamList = {
-  sellerOrder: undefined; // o `undefined` si no recibe params
-  sellerRequests: undefined;
-  sellerStats: undefined;
-  sellerReviews: undefined;
 };
 
 export default function sellerStats() {
@@ -92,9 +76,147 @@ export default function sellerStats() {
     }
   };
 
+  // useEffect(() => {
+  //   const fetchData = async () => {
+  //     if (chartPeriod === Period.week) {
+  //       const { endDate, startDate } = getWeekRange(currentDate);
+  //       setCurrentEndDate(new Date(endDate));
+  //       const data = await fetchWeeklyData(startDate, endDate);
+  //       if (data) {
+  //         setChartData(processWeeklyData(data!));
+  //         setChartKey((prev) => prev + 1);
+  //         console.log(processWeeklyData(data!));
+  //       } else setChartData([]);
+  //     } else if (chartPeriod === Period.month) {
+  //       const { endDate, startDate } = getMonthRange(currentDate);
+
+  //       setCurrentEndDate(new Date(endDate));
+
+  //       const data = await fetchMonthlyData(startDate, endDate);
+  //       console.log(data);
+
+  //       if (data) {
+  //         const formattedData = processMonthlyData(data, currentDate);
+  //         setChartData(formattedData);
+  //         setChartKey((prev) => prev + 1);
+  //         console.log(formattedData);
+  //       } else {
+  //         setChartData([]);
+  //       }
+  //     } else if (chartPeriod === Period.year) {
+  //       const months = getYearMonthRanges(currentDate);
+
+  //       const data = await fetchYearlyMonthlyData(currentDate.getFullYear());
+  //       console.log(data);
+
+  //       if (data) {
+  //         const formattedData = processYearlyData(data); // genera 12 barras (Ene–Dic)
+  //         setChartData(formattedData);
+  //         setChartKey((prev) => prev + 1);
+  //         console.log(formattedData);
+  //       } else {
+  //         setChartData([]);
+  //       }
+  //     }
+  //   };
+  //   fetchData();
+  // }, [currentDate, chartPeriod]);
+
   useEffect(() => {
     fetchStatsData();
   }, [chartPeriod, currentDate]);
+
+  // const fetchWeeklyData = async (startDate: number, endDate: number) => {
+  //   try {
+  //     const countResult = await database.getAllAsync<{ total: number }>(
+  //       "SELECT COUNT(*) AS total FROM transactions WHERE date >= ? AND date <= ?;",
+  //       [startDate, endDate]
+  //       //[startDate, endDate]
+  //     );
+  //     const weeklyQuery = `
+  //     SELECT
+  //       strftime('%w', date /1000, 'unixepoch') AS day_of_week,
+  //       SUM(amount) as total
+  //       FROM transactions
+  //       WHERE date >= ? AND date <= ?
+  //       GROUP BY day_of_week
+  //       ORDER BY day_of_week ASC
+  //     `;
+  //     if (countResult[0]?.total > 0) {
+  //       const result = await database.getAllAsync<{
+  //         day_of_week: number;
+  //         total: number;
+  //       }>(weeklyQuery, [startDate, endDate]);
+  //       //[startDate, endDate]
+  //       console.log(result);
+  //       return result;
+  //     } else {
+  //       return [];
+  //     }
+  //   } catch (e) {
+  //     console.log(e);
+  //   }
+  // };
+
+  // const fetchMonthlyData = async (startDate: number, endDate: number) => {
+  //   try {
+  //     const countResult = await database.getAllAsync<{ total: number }>(
+  //       "SELECT COUNT(*) AS total FROM transactions WHERE date >= ? AND date <= ?;",
+  //       [startDate, endDate]
+  //     );
+  //     //[startDate, endDate]
+
+  //     const monthlyQuery = `
+  //     SELECT
+  //       strftime('%d', date / 1000, 'unixepoch') AS day_of_month,
+  //       SUM(amount) AS total
+  //     FROM transactions
+  //     WHERE date >= ? AND date <= ?
+  //     GROUP BY day_of_month
+  //     ORDER BY day_of_month ASC;
+  //   `;
+
+  //     if (countResult[0]?.total > 0) {
+  //       const result = await database.getAllAsync<{
+  //         day_of_month: number;
+  //         total: number;
+  //       }>(monthlyQuery, [startDate, endDate]);
+
+  //       console.log(result);
+  //       return result;
+  //     } else {
+  //       return [];
+  //     }
+  //   } catch (e) {
+  //     console.log(e);
+  //     return [];
+  //   }
+  // };
+
+  // const fetchYearlyMonthlyData = async (year: number) => {
+  //   try {
+  //     const yearlyQuery = `
+  //     SELECT
+  //       strftime('%m', date / 1000, 'unixepoch') AS month_of_year,
+  //       SUM(amount) AS total
+  //     FROM transactions
+  //     WHERE strftime('%Y', date / 1000, 'unixepoch') = ?
+  //     GROUP BY month_of_year
+  //     ORDER BY month_of_year ASC;
+  //   `;
+
+  //     const result = await database.getAllAsync<{
+  //       month_of_year: string;
+  //       total: number;
+  //     }>(yearlyQuery, [year.toString()]);
+
+  //     console.log(result);
+  //     return result; // Ejemplo: [{ month: "01", total: 1230 }, ...]
+  //   } catch (e) {
+  //     console.log(e);
+  //     return [];
+  //   }
+  // };
 
   const fetchWeeklyData = async (startDate: number, endDate: number) => {
     try {
@@ -102,9 +224,7 @@ export default function sellerStats() {
       const query = `?shopId=${shopId}&period=week&date=${new Date(
         startDate
       ).toISOString()}`;
-      const response = await fetch(
-        `${process.env.EXPO_PUBLIC_HOST}/getStats${query}`
-      );
+      const response = await fetch(`http://192.168.3.6:3000/getStats${query}`);
       const data = await response.json();
       return data;
     } catch (error) {
@@ -118,9 +238,7 @@ export default function sellerStats() {
       const query = `?shopId=${shopId}&period=month&date=${new Date(
         startDate
       ).toISOString()}`;
-      const response = await fetch(
-        `${process.env.EXPO_PUBLIC_HOST}/getStats${query}`
-      );
+      const response = await fetch(`http://192.168.3.6:3000/getStats${query}`);
       const data = await response.json();
       return data;
     } catch (error) {
@@ -134,9 +252,7 @@ export default function sellerStats() {
       const query = `?shopId=${shopId}&period=year&date=${new Date(
         `${year}-01-01`
       ).toISOString()}`;
-      const response = await fetch(
-        `${process.env.EXPO_PUBLIC_HOST}/getStats${query}`
-      );
+      const response = await fetch(`http://192.168.3.6:3000/getStats${query}`);
       const data = await response.json();
       return data;
     } catch (error) {
@@ -185,8 +301,7 @@ export default function sellerStats() {
   };
 
   const screenWidth = Dimensions.get("window").width;
-  const navigation =
-    useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+
   return (
     <ScrollView
       contentContainerStyle={{
@@ -212,30 +327,25 @@ export default function sellerStats() {
             flexShrink: 50,
           }}
         >
-          <TouchableOpacity
-            onPress={() => navigation.navigate("sellerOrder")}
-            style={{}}
+          <Text
+            style={{
+              fontFamily: "Inter_700Bold",
+              fontSize: 52,
+              color: "#32343E",
+            }}
           >
-            <Text
-              style={{
-                fontFamily: "Inter_700Bold",
-                fontSize: 52,
-                color: "#32343E",
-              }}
-            >
-              20
-            </Text>
-            <Text
-              style={{
-                fontFamily: "Inter_700Bold",
-                fontSize: 13,
-                textTransform: "uppercase",
-                color: "#838799",
-              }}
-            >
-              Pedidos en curso
-            </Text>
-          </TouchableOpacity>
+            20
+          </Text>
+          <Text
+            style={{
+              fontFamily: "Inter_700Bold",
+              fontSize: 13,
+              textTransform: "uppercase",
+              color: "#838799",
+            }}
+          >
+            Pedidos en curso
+          </Text>
         </View>
         <View
           style={{
@@ -246,30 +356,25 @@ export default function sellerStats() {
             flexShrink: 50,
           }}
         >
-          <TouchableOpacity
-            onPress={() => navigation.navigate("sellerRequests")}
-            style={{}}
+          <Text
+            style={{
+              fontFamily: "Inter_700Bold",
+              fontSize: 52,
+              color: "#32343E",
+            }}
           >
-            <Text
-              style={{
-                fontFamily: "Inter_700Bold",
-                fontSize: 52,
-                color: "#32343E",
-              }}
-            >
-              05
-            </Text>
-            <Text
-              style={{
-                fontFamily: "Inter_700Bold",
-                fontSize: 13,
-                textTransform: "uppercase",
-                color: "#838799",
-              }}
-            >
-              Solicitudes en curso
-            </Text>
-          </TouchableOpacity>
+            05
+          </Text>
+          <Text
+            style={{
+              fontFamily: "Inter_700Bold",
+              fontSize: 13,
+              textTransform: "uppercase",
+              color: "#838799",
+            }}
+          >
+            Solicitud de delivery
+          </Text>
         </View>
       </View>
       <View
@@ -376,23 +481,17 @@ export default function sellerStats() {
               justifyContent: "center",
             }}
           >
-            <View>
-              <TouchableOpacity
-                onPress={() => navigation.navigate("sellerStats")}
-              >
-                <Text
-                  style={{
-                    borderBottomWidth: 1,
-                    borderBottomColor: "#E94B64",
-                    color: "#E94B64",
-                    fontFamily: "Inter_400Regular",
-                    fontSize: 14,
-                  }}
-                >
-                  Ver detalles
-                </Text>
-              </TouchableOpacity>
-            </View>
+            <Text
+              style={{
+                borderBottomWidth: 1,
+                borderBottomColor: "#E94B64",
+                color: "#E94B64",
+                fontFamily: "Inter_400Regular",
+                fontSize: 14,
+              }}
+            >
+              Ver detalles
+            </Text>
           </View>
         </View>
         <View
@@ -443,22 +542,16 @@ export default function sellerStats() {
           <Text style={{ fontFamily: "Inter_400Regular", fontSize: 14 }}>
             Reseñas
           </Text>
-          <View>
-            <TouchableOpacity
-              onPress={() => navigation.navigate("sellerReviews")}
-            >
-              <Text
-                style={{
-                  fontFamily: "Inter_400Regular",
-                  color: "#E94B64",
-                  borderBottomWidth: 1,
-                  borderBottomColor: "#E94B64",
-                }}
-              >
-                Ver todas las reseñas
-              </Text>
-            </TouchableOpacity>
-          </View>
+          <Text
+            style={{
+              fontFamily: "Inter_400Regular",
+              color: "#E94B64",
+              borderBottomWidth: 1,
+              borderBottomColor: "#E94B64",
+            }}
+          >
+            Ver todas las reseñas
+          </Text>
         </View>
         <View
           style={{
@@ -521,26 +614,22 @@ export default function sellerStats() {
             alignItems: "center",
           }}
         >
+          <Text style={{}}></Text>
           <Text style={{ fontFamily: "Inter_400Regular", fontSize: 14 }}>
             Populares de esta semana
           </Text>
-          <View>
-            <TouchableOpacity
-              onPress={() => navigation.navigate("sellerReviews")}
-            >
-              <Text
-                style={{
-                  fontFamily: "Inter_400Regular",
-                  color: "#E94B64",
-                  borderBottomWidth: 1,
-                  borderBottomColor: "#E94B64",
-                }}
-              >
-                Ver todo
-              </Text>
-            </TouchableOpacity>
-          </View>
+          <Text
+            style={{
+              fontFamily: "Inter_400Regular",
+              color: "#E94B64",
+              borderBottomWidth: 1,
+              borderBottomColor: "#E94B64",
+            }}
+          >
+            Ver todo
+          </Text>
         </View>
+
         <ScrollView
           horizontal
           contentContainerStyle={{
