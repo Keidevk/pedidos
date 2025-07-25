@@ -57,11 +57,12 @@ export default function Index() {
     const data = await response.json();
     
     if(response.ok && data.token) {
+      console.log(data.userId)
       setLogged(true)
       await AsyncStorage.setItem('@auth_token', `${data.token}`);
       setTypeUser(data.tipo)
       await AsyncStorage.setItem('@userId',`${data.userId}`) // Guarda token
-      router.replace('/(main)/main');
+      // router.replace('/(main)/main');
     }else{
       Alert.alert(`${response.status}`,data.message)
     }
