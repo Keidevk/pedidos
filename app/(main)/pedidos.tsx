@@ -57,6 +57,7 @@ export default function Pedidos(){
         const result = await response.json();
         const pedidos: Pedido[] = await result.data;
         console.log(pedidos)
+        console.log(pedidos)
         if(!pedidos) return {pendientes:[],listos:[]};
         const tiendas = pedidos.map(p=>p.tiendaId)
         fetchAllShopData(tiendas);
@@ -84,6 +85,7 @@ export default function Pedidos(){
     cargarPedidos();
 
       return () => {
+    cargarPedidos();
         
             };
           }, [])
