@@ -59,11 +59,9 @@ export default function Shops(){
                 </View>
                 <View style={{maxWidth:250,}}>
                     <Text style={{marginLeft:10,fontFamily:'Inter_600SemiBold',fontSize:16}}>
-                    {shop.Nombre}</Text>
+                    {shop.nombre}</Text>
                     <Text style={{marginLeft:10,fontFamily:'Inter_300Light',color:"#888"}}>
-                    {shop.Descripcion}</Text>
-                    <Text style={{marginLeft:10}}>
-                    {shop.Descripcion}</Text>
+                    {shop.descripcion}</Text>
                 </View>
             </View>
         </TouchableOpacity>)})}

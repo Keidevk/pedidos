@@ -6,7 +6,7 @@ export const handlerMain = async () => {
     router.replace('/(main)/main');
 };
 
-export function handlerShopById(id:number){
+export function handlerShopById(id:string){
     router.push({pathname:'/(main)/shop/[id]',params:{id}})
 }
 

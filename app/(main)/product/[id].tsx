@@ -2,9 +2,11 @@ import { CarritoItem, Producto } from "@/app/types";
 import { Inter_300Light, Inter_400Regular, Inter_600SemiBold } from "@expo-google-fonts/inter";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFonts } from "expo-font";
-import { useLocalSearchParams } from "expo-router";
+import { Image } from "expo-image";
+import { router, useLocalSearchParams } from "expo-router";
 import { Dispatch, useEffect, useState } from "react";
 import { Alert, Text, TouchableOpacity, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 
 
@@ -17,6 +19,8 @@ async function getProductData(id:string|string[],setState:Dispatch<Producto>){
 export default function Products(){
     const { id } = useLocalSearchParams();
     const [cantidad,setCantidad] = useState(1)
+    const insets = useSafeAreaInsets();
+    
     useFonts({Inter_600SemiBold,Inter_300Light,Inter_400Regular});
     
     const [isLoading,setLoad] = useState(true)
@@ -84,6 +88,17 @@ const agregarAlCarrito = async (
     }
     return(
     <View>
+        <TouchableOpacity
+          onPress={()=>router.back()}
+          style={{position:'relative', flexDirection: "row", alignItems: "center", top:insets.top,zIndex:100 }}
+        >
+            <Image
+              style={{ height: 32, width: 32, marginLeft: 5 }}
+              contentFit="cover"
+              source={require("../../../assets/images/arrowback.svg")}
+            ></Image>
+            <Text style={{ fontFamily: "Inter_600SemiBold" }}>Carrito</Text>
+        </TouchableOpacity>
         <View style={{backgroundColor:'#ccc',height:250}}></View>
         <View style={{flexDirection:'row',marginVertical:10}}>
             <Text style={{marginLeft:20,fontSize:20,fontFamily:'Inter_600SemiBold'}}>{productData.nombre}</Text>
