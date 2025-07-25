@@ -4,10 +4,11 @@ import {
   Inter_600SemiBold,
 } from "@expo-google-fonts/inter";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useFocusEffect } from "@react-navigation/native";
 import { useFonts } from "expo-font";
 import { Image } from "expo-image";
 import { router } from "expo-router";
-import { Dispatch, useEffect, useState } from "react";
+import { Dispatch, useCallback, useState } from "react";
 import {
   ScrollView,
   StyleSheet,
@@ -17,7 +18,6 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-
 interface Tienda {
   id: string;
   userId: number;
@@ -32,6 +32,16 @@ interface Tienda {
   fotosTienda: string[];
 }
 
+type Pedido = {
+  id: string;
+  fecha: string;
+  estado: "pendiente" | "listo";
+  total: number;
+  metodoPago: string;
+  clienteId: string;
+  tiendaId: string;
+  repartidorId?: string | null;
+};
 async function getItem(item: string, setState: Dispatch<string>) {
   await AsyncStorage.getItem(item)
     .then((res) => {
@@ -49,15 +59,40 @@ async function getShops(setState: Dispatch<Tienda[]>) {
   setState(data);
 }
 
+async function getOrders(userId: string | null, setState: Dispatch<Pedido[]>) {
+  if (!userId) return;
+  const response = await fetch(
+    `${process.env.EXPO_PUBLIC_HOST}/api/order/${userId}`
+  );
+  const data = await response.json();
+  setState(data.data);
+}
+
 export default function MenuPrincipal() {
   const insets = useSafeAreaInsets();
   const [isLogged, setLogged] = useState<string | null>(null);
   const [shops, setShops] = useState<Tienda[] | null>(null);
+  const [orders, setOrders] = useState<Pedido[]>();
+  const [userId, setUserId] = useState<string | null>(null);
   useFonts({ Inter_600SemiBold, Inter_300Light, Inter_400Regular });
-  useEffect(() => {
-    getItem("@auth_token", setLogged);
-    getShops(setShops);
-  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      let isActive = true;
+
+      async function initial() {
+        getItem("@userId", setUserId);
+        getItem("@auth_token", setLogged);
+        if (!isActive) return;
+        getOrders(userId, setOrders);
+        getShops(setShops);
+      }
+      initial();
+      return () => {
+        isActive = false;
+      };
+    }, [])
+  );
 
   const handlerCategory = async (category: string) => {
     router.push({
@@ -170,101 +205,67 @@ export default function MenuPrincipal() {
                 })}
             </ScrollView>
           </View>
-          <View style={style.subtitle}>
+          <TouchableOpacity
+            onPress={() => {
+              router.navigate("/(main)/pedidos");
+            }}
+            style={style.subtitle}
+          >
             <Text style={style.text_etiqueta}>Más Pedidos</Text>
-          </View>
-          <View style={{ flexDirection: "row" }}>
-            <View
-              style={{
-                backgroundColor: "#E94B64",
-                height: 225,
-                width: 150,
-                borderRadius: 15,
-                marginLeft: 10,
-              }}
-            >
-              <Image
-                style={{
-                  backgroundColor: "#ccc",
-                  height: 115,
-                  margin: 12,
-                  borderRadius: 10,
-                }}
-              ></Image>
-              <Text
-                style={{
-                  color: "white",
-                  marginLeft: 10,
-                  fontFamily: "Inter_300Light",
-                }}
-              >
-                Shop
-              </Text>
-              <Text
-                style={{
-                  color: "white",
-                  marginLeft: 10,
-                  fontFamily: "Inter_300Light",
-                }}
-              >
-                Product Title
-              </Text>
-              <Text
-                style={{
-                  color: "white",
-                  marginLeft: 10,
-                  fontFamily: "Inter_400Regular",
-                }}
-              >
-                Price
-              </Text>
-            </View>
-            <View
-              style={{
-                backgroundColor: "#E94B64",
-                height: 225,
-                width: 150,
-                borderRadius: 15,
-                marginLeft: 10,
-              }}
-            >
-              <Image
-                style={{
-                  backgroundColor: "#ccc",
-                  height: 115,
-                  margin: 12,
-                  borderRadius: 10,
-                }}
-              ></Image>
-              <Text
-                style={{
-                  color: "white",
-                  marginLeft: 10,
-                  fontFamily: "Inter_300Light",
-                }}
-              >
-                Shop
-              </Text>
-              <Text
-                style={{
-                  color: "white",
-                  marginLeft: 10,
-                  fontFamily: "Inter_300Light",
-                }}
-              >
-                Product Title
-              </Text>
-              <Text
-                style={{
-                  color: "white",
-                  marginLeft: 10,
-                  fontFamily: "Inter_400Regular",
-                }}
-              >
-                Price
-              </Text>
-            </View>
-          </View>
+            <Image
+              style={style.chevron}
+              contentFit="cover"
+              source={require("../../assets/images/chevron.svg")}
+            ></Image>
+          </TouchableOpacity>
+          <ScrollView>
+            {Array.isArray(orders) &&
+              orders.map((item, index) => {
+                const tienda = Array.isArray(shops)
+                  ? shops.find((s) => s.id === item.tiendaId)
+                  : undefined;
+                return (
+                  <View style={{ flexDirection: "row" }} key={index}>
+                    <View
+                      style={{
+                        backgroundColor: "#E94B64",
+                        height: 225,
+                        width: 150,
+                        borderRadius: 15,
+                        marginLeft: 10,
+                      }}
+                    >
+                      <Image
+                        style={{
+                          backgroundColor: "#ccc",
+                          height: 115,
+                          margin: 12,
+                          borderRadius: 10,
+                        }}
+                      ></Image>
+                      <Text
+                        style={{
+                          color: "white",
+                          marginLeft: 10,
+                          fontFamily: "Inter_400Regular",
+                        }}
+                      >
+                        {tienda?.nombre}
+                      </Text>
+                      <Text
+                        style={{
+                          color: "white",
+                          marginLeft: 10,
+                          fontFamily: "Inter_400Regular",
+                        }}
+                      >
+                        ${item.total}
+                      </Text>
+                    </View>
+                  </View>
+                );
+              })}
+          </ScrollView>
         </View>
       ) : (
         <View>

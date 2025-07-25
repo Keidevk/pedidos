@@ -4,6 +4,7 @@ import {
   Inter_600SemiBold,
   useFonts,
 } from "@expo-google-fonts/inter";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Image } from "expo-image";
 import { router } from "expo-router";
 import { useEffect, useState } from "react";
@@ -11,7 +12,7 @@ import { Text, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import useCargarCarritosPorTienda from "../hooks/useCarshopping";
 import { CarritoItem } from "../types";
-import { getShopById, handlerMain } from "../utils";
+import { getShopById } from "../utils";
 
 interface Tienda {
   id: string;
@@ -50,8 +51,6 @@ export default function CarShop() {
   // useCargarCarrito(setCarshopping);
   useCargarCarritosPorTienda(setCarshopping);
 
-  useEffect(() => {}, []);
-
   useEffect(() => {
     const tiendaIds = Array.from(
       new Set(carshopping.map((item) => item.tiendaId))
@@ -76,7 +75,7 @@ export default function CarShop() {
   return (
     <View style={{ paddingTop: insets.top }}>
       <TouchableOpacity
-        onPress={handlerMain}
+        onPress={()=>router.back}
         style={{ flexDirection: "row", alignItems: "center", marginBottom: 10 }}
       >
         <Image
@@ -126,6 +125,12 @@ export default function CarShop() {
                     </Text>
                     <View style={{ flexDirection: "row", marginTop: 5 }}>
                       <TouchableOpacity
+                        onPress={async () => {
+                          await AsyncStorage.removeItem(`carrito_${shop.id}`);
+                          // eslint-disable-next-line react-hooks/rules-of-hooks
+                          useCargarCarritosPorTienda(setCarshopping); // válido aquí dentro del componente
+                        }}
+
                         style={{
                           width: 75,
                           alignItems: "center",

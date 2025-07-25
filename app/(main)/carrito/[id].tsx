@@ -33,15 +33,15 @@ export default function ItemCarrito(){
 function handlerPayment({
   id, 
   tiendaId,
-  metodoPago,
   carrito,
+  isDelivery,
   productosFiltrados,
   notas,
 }: {
   id: string | number;
   tiendaId: string | string[];
-  metodoPago: string;
   carrito: CarritoItem[];
+  isDelivery:boolean;
   productosFiltrados: Producto[];
   notas?: string;
 }) {
@@ -64,11 +64,11 @@ function handlerPayment({
   )
 
   router.push({
-    pathname: '/(main)/payment/[id]',
+    pathname: "/(main)/payment/[id]",
     params: {
       id,
       tiendaId,
-      metodoPago,
+      isDelivery:isDelivery.toString(),
       total: total.toString(),
       detalles: JSON.stringify(detalles),
       notas: notas ?? '',
@@ -265,9 +265,9 @@ function handlerPayment({
                       id:userId,
                       tiendaId:id,
                       carrito:cantidad,
+                      isDelivery,
                       productosFiltrados,
-                      notas,
-                      metodoPago:'efectivo'})}} style={{flex:1,marginVertical:'auto',backgroundColor:'#FFE8EC',height:50,borderRadius:20}}>
+                      notas,})}} style={{flex:1,marginVertical:'auto',backgroundColor:'#FFE8EC',height:50,borderRadius:20}}>
                       <Text style={{textAlign:'center',marginVertical:'auto',fontSize:16,fontWeight:'semibold',color:'#828282'}}>Pagar</Text>
                     </TouchableOpacity>
                   </View>
