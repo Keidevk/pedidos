@@ -6,7 +6,6 @@ import {
   useFonts,
 } from "@expo-google-fonts/inter";
 import { Image } from "expo-image";
-import { useSQLiteContext } from "expo-sqlite";
 import React, { useEffect } from "react";
 import { Dimensions, ScrollView, Text, View } from "react-native";
 import { BarChart, barDataItem } from "react-native-gifted-charts";
@@ -49,7 +48,6 @@ export default function sellerStats() {
   const [currentDate, setCurrentDate] = React.useState<Date>(new Date());
   const [currentEndDate, setCurrentEndDate] = React.useState<Date>(new Date());
   const [chartKey, setChartKey] = React.useState<number>(0);
-  const database = useSQLiteContext();
 
   const fetchStatsData = async () => {
     try {
