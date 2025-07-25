@@ -14,7 +14,7 @@ type yearlySummary = {
 };
 
 export const processWeeklyData = (data: weeklySummary[]) => {
-  const weekDays = ["Dom", "Lun", "Mar", "Mie", "Jue", "Vie", "Sab"];
+  const weekDays = ["Lun", "Mar", "Mie", "Jue", "Vie", "Sab", "Dom"];
 
   let barData = weekDays.map(
     (label) =>
@@ -27,16 +27,12 @@ export const processWeeklyData = (data: weeklySummary[]) => {
   );
 
   data.forEach((item) => {
-    const dayIndex = item.day_of_week;
+    const dayIndex = item.day_of_week % 7; // por si llega como "5"
     if (dayIndex >= 0 && dayIndex < 7) {
       barData[dayIndex].value = item.total;
-      if (item.total < 25) {
-        barData[dayIndex].frontColor = "#e97788ff";
-        barData[dayIndex].gradientColor = "#e97788ff";
-      } else {
-        barData[dayIndex].frontColor = "#E94B64";
-        barData[dayIndex].gradientColor = "#E94B64";
-      }
+      const color = item.total < 25 ? "#e97788ff" : "#E94B64";
+      barData[dayIndex].frontColor = color;
+      barData[dayIndex].gradientColor = color;
     }
   });
 

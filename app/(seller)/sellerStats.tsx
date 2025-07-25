@@ -6,9 +6,15 @@ import {
   useFonts,
 } from "@expo-google-fonts/inter";
 import { Image } from "expo-image";
-import React, { useEffect } from "react";
-import { Dimensions, ScrollView, StyleSheet, Text, View } from "react-native";
-import { BarChart, barDataItem } from "react-native-gifted-charts";
+import React, { useEffect, useState } from "react";
+import {
+  ActivityIndicator,
+  Dimensions,
+  ScrollView,
+  Text,
+  View,
+} from "react-native";
+import { BarChart } from "react-native-gifted-charts";
 import RNPickerSelect from "react-native-picker-select";
 import Svg, { Circle } from "react-native-svg";
 import {
@@ -18,227 +24,124 @@ import {
 } from "./utils/dataProcessHelpers";
 
 enum Categories {
-  one = "week",
-  two = "month",
-  three = "year",
+  one = "one",
+  two = "two",
+  three = "three",
 }
-enum PeriodProducts {
-  week = "week",
-  month = "month",
-  year = "year",
-}
+
 enum PeriodSells {
   week = "week",
   month = "month",
   year = "year",
 }
 
-type TransactionsType = {
-  id: number;
-  product: string;
-  client_name: string;
-  amount: number;
-  date: Date;
+type ChartItem = {
+  label: string;
+  value: number;
+  frontColor: string;
+  gradientColor: string;
 };
 
-type weeklySummary = {
-  day_of_week: number;
-  total: number;
-};
-export default function sellerStats() {
-  useFonts({
-    Inter_600SemiBold,
+export default function SellerStats() {
+  const [fontsLoaded] = useFonts({
     Inter_300Light,
     Inter_400Regular,
+    Inter_600SemiBold,
     Inter_700Bold,
   });
 
-  const [chartData, setChartData] = React.useState<barDataItem[]>([]);
-  const [chartPeriod, setChartPeriod] = React.useState<PeriodSells>(
-    PeriodSells.week
-  );
-  const [currentDate, setCurrentDate] = React.useState<Date>(new Date());
-  const [currentEndDate, setCurrentEndDate] = React.useState<Date>(new Date());
-  const [chartKey, setChartKey] = React.useState<number>(0);
+  const [chartData, setChartData] = useState<ChartItem[]>([]);
+  const [chartPeriod, setChartPeriod] = useState<PeriodSells>(PeriodSells.week);
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const [loading, setLoading] = useState(false);
+
+  const shopId = 2; // ⚙️ Si lo tienes por session/context, pásalo por props
 
   useEffect(() => {
     const fetchData = async () => {
-      if (chartPeriod === PeriodSells.week) {
-        const { endDate, startDate } = getWeekRange(currentDate);
-        setCurrentEndDate(new Date(endDate));
-        const data = await fetchWeeklyData(startDate, endDate);
-        if (data) {
-          setChartData(processWeeklyData(data!));
-          setChartKey((prev) => prev + 1);
-          console.log(processWeeklyData(data!));
-        } else setChartData([]);
-      } else if (chartPeriod === PeriodSells.month) {
-        const { endDate, startDate } = getMonthRange(currentDate);
+      setLoading(true);
+      try {
+        let query = "";
 
-        setCurrentEndDate(new Date(endDate));
-
-        const data = await fetchMonthlyData(startDate, endDate);
-        console.log(data);
-
-        if (data) {
-          const formattedData = processMonthlyData(data, currentDate);
-          setChartData(formattedData);
-          setChartKey((prev) => prev + 1);
-          console.log(formattedData);
+        if (chartPeriod === "week") {
+          const { startDate } = getWeekRange(currentDate);
+          query = `shopId=${shopId}&period=week&date=${startDate.toISOString()}`;
+        } else if (chartPeriod === "month") {
+          const { startDate } = getMonthRange(currentDate);
+          query = `shopId=${shopId}&period=month&date=${startDate.toISOString()}`;
         } else {
-          setChartData([]);
+          query = `shopId=${shopId}&period=year&date=${currentDate.toISOString()}`;
         }
-      } else if (chartPeriod === PeriodSells.year) {
-        const months = getYearMonthRanges(currentDate);
 
-        const data = await fetchYearlyMonthlyData(currentDate.getFullYear());
-        console.log(data);
-
-        if (data) {
-          const formattedData = processYearlyData(data); // genera 12 barras (Ene–Dic)
-          setChartData(formattedData);
-          setChartKey((prev) => prev + 1);
-          console.log(formattedData);
-        } else {
+        const response = await fetch(
+          `${process.env.EXPO_PUBLIC_HOST}/api/stats/getStats?${query}`
+        );
+        console.log(response);
+        const json = await response.json();
+        console.log("⚠️ Respuesta cruda:", json); // En Expo Go no lo verás, así que mostralo en pantalla:
+        if (!Array.isArray(json)) {
+          console.warn("Respuesta inválida para map()", json);
           setChartData([]);
+          return;
         }
+        const formatted =
+          chartPeriod === "week"
+            ? processWeeklyData(
+                json.map((item) => ({
+                  day_of_week: parseInt(item.day_of_week, 10), // <-- asegurar que sea número
+                  total: item.total,
+                }))
+              )
+            : chartPeriod === "month"
+            ? processMonthlyData(
+                json.map((item) => ({
+                  day_of_month: item.day ? new Date(item.day).getDate() : 0,
+                  total: item.total,
+                })),
+                currentDate
+              )
+            : processYearlyData(
+                json.map((item) => ({
+                  month_of_year: item.month.toString().padStart(2, "0"),
+                  total: item.total,
+                }))
+              );
+
+        setChartData(formatted);
+      } catch (err) {
+        console.error("Error al consumir stats:", err);
+        setChartData([]);
+      } finally {
+        setLoading(false);
       }
     };
+
     fetchData();
-  }, [currentDate, chartPeriod]);
+  }, [chartPeriod, currentDate]);
+  const getWeekRange = (currentDate: Date) => {
+    const day = currentDate.getDay(); // 0 (Dom) → 6 (Sáb)
+    const diffToMonday = day === 0 ? -6 : 1 - day;
 
-  const fetchWeeklyData = async (startDate: number, endDate: number) => {
-    try {
-      const countResult = await database.getAllAsync<{ total: number }>(
-        "SELECT COUNT(*) AS total FROM transactions WHERE date >= ? AND date <= ?;",
-        [startDate, endDate]
-        //[startDate, endDate]
-      );
-      const weeklyQuery = `
-        SELECT 
-          strftime('%w', date /1000, 'unixepoch') AS day_of_week,
-          SUM(amount) as total
-          FROM transactions
-          WHERE date >= ? AND date <= ?
-          GROUP BY day_of_week
-          ORDER BY day_of_week ASC
-        `;
-      if (countResult[0]?.total > 0) {
-        const result = await database.getAllAsync<{
-          day_of_week: number;
-          total: number;
-        }>(weeklyQuery, [startDate, endDate]);
-        //[startDate, endDate]
-        console.log(result);
-        return result;
-      } else {
-        return [];
-      }
-    } catch (e) {
-      console.log(e);
-    }
+    const startDate = new Date(currentDate);
+    startDate.setDate(currentDate.getDate() + diffToMonday);
+
+    const endDate = new Date(startDate);
+    endDate.setDate(startDate.getDate() + 6);
+
+    return { startDate, endDate };
   };
 
-  const fetchMonthlyData = async (startDate: number, endDate: number) => {
-    try {
-      const countResult = await database.getAllAsync<{ total: number }>(
-        "SELECT COUNT(*) AS total FROM transactions WHERE date >= ? AND date <= ?;",
-        [startDate, endDate]
-      );
-      //[startDate, endDate]
+  const getMonthRange = (currentDate: Date) => {
+    const year = currentDate.getFullYear();
+    const month = currentDate.getMonth();
 
-      const monthlyQuery = `
-        SELECT 
-          strftime('%d', date / 1000, 'unixepoch') AS day_of_month,
-          SUM(amount) AS total
-        FROM transactions
-        WHERE date >= ? AND date <= ?
-        GROUP BY day_of_month
-        ORDER BY day_of_month ASC;
-      `;
+    const startDate = new Date(year, month, 1);
 
-      if (countResult[0]?.total > 0) {
-        const result = await database.getAllAsync<{
-          day_of_month: number;
-          total: number;
-        }>(monthlyQuery, [startDate, endDate]);
-
-        console.log(result);
-        return result;
-      } else {
-        return [];
-      }
-    } catch (e) {
-      console.log(e);
-      return [];
-    }
-  };
-
-  const fetchYearlyMonthlyData = async (year: number) => {
-    try {
-      const yearlyQuery = `
-        SELECT 
-          strftime('%m', date / 1000, 'unixepoch') AS month_of_year,
-          SUM(amount) AS total
-        FROM transactions
-        WHERE strftime('%Y', date / 1000, 'unixepoch') = ?
-        GROUP BY month_of_year
-        ORDER BY month_of_year ASC;
-      `;
-
-      const result = await database.getAllAsync<{
-        month_of_year: string;
-        total: number;
-      }>(yearlyQuery, [year.toString()]);
-
-      console.log(result);
-      return result; // Ejemplo: [{ month: "01", total: 1230 }, ...]
-    } catch (e) {
-      console.log(e);
-      return [];
-    }
-  };
-
-  const getWeekRange = (date: Date) => {
-    const startOfWeek = new Date(date.setDate(date.getDate() - date.getDay()));
-    const endOfWeek = new Date(date.setDate(startOfWeek.getDate() + 6));
-    return {
-      startDate: Math.floor(startOfWeek.getTime()),
-      endDate: Math.floor(endOfWeek.getTime()),
-    };
-  };
-
-  const getMonthRange = (date: Date) => {
-    const year = date.getFullYear();
-    const month = date.getMonth();
-
-    const startOfMonth = new Date(year, month, 1);
-    const endOfMonth = new Date(year, month + 1, 0); // Día 0 del siguiente mes = último día actual
-
-    return {
-      startDate: Math.floor(startOfMonth.getTime()),
-      endDate: Math.floor(endOfMonth.getTime()),
-    };
-  };
-
-  const getYearMonthRanges = (date: Date) => {
-    const year = date.getFullYear();
-
-    const months = Array.from({ length: 12 }, (_, i) => {
-      const startOfMonth = new Date(year, i, 1);
-      const endOfMonth = new Date(year, i + 1, 0); // Día 0 del siguiente mes
-
-      return {
-        month: i + 1, // Opcional: número del mes (1–12)
-        startDate: Math.floor(startOfMonth.getTime()),
-        endDate: Math.floor(endOfMonth.getTime()),
-      };
-    });
-
-    return months;
+    return { startDate };
   };
 
   const screenWidth = Dimensions.get("window").width;
+  if (!fontsLoaded) return null;
 
   const BorderProgressCircle = ({
     percentage,
@@ -263,7 +166,14 @@ export default function sellerStats() {
       circumference * (1 - Math.min(Math.max(percentage, 0), 100) / 100);
 
     return (
-      <View style={styles.wrapper}>
+      <View
+        style={{
+          alignItems: "center",
+          justifyContent: "center",
+          marginHorizontal: 12,
+          gap: 5,
+        }}
+      >
         <Svg width={size} height={size}>
           {/* Fondo del círculo */}
           <Circle
@@ -293,7 +203,14 @@ export default function sellerStats() {
         </Svg>
 
         {/* Texto en el centro */}
-        <View style={styles.centerText}>
+        <View
+          style={{
+            left: 0,
+            right: 0,
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
           <Text
             style={{
               fontSize: 17,
@@ -307,32 +224,14 @@ export default function sellerStats() {
         </View>
 
         {/* Etiqueta debajo */}
-        <Text style={styles.label}>{label}</Text>
+        <Text
+          style={{ fontSize: 14, fontFamily: "Inter_300Light", color: "#333" }}
+        >
+          {label}
+        </Text>
       </View>
     );
   };
-
-  const styles = StyleSheet.create({
-    wrapper: {
-      alignItems: "center",
-      justifyContent: "center",
-      marginHorizontal: 12,
-      gap: 5,
-    },
-    centerText: {
-      // position: "absolute",
-      // top: "43%",
-      left: 0,
-      right: 0,
-      alignItems: "center",
-      justifyContent: "center",
-    },
-    label: {
-      fontSize: 14,
-      fontFamily: "Inter_300Light",
-      color: "#333",
-    },
-  });
 
   return (
     <ScrollView contentContainerStyle={{ gap: 20, padding: 10 }}>
@@ -364,10 +263,13 @@ export default function sellerStats() {
           <View
             style={{
               flexDirection: "row",
-              gap: 10,
             }}
           >
-            <View>
+            <View
+              style={{
+                width: 150,
+              }}
+            >
               <Text
                 style={{
                   textTransform: "uppercase",
@@ -386,14 +288,10 @@ export default function sellerStats() {
                   color: "#32343E",
                 }}
               >
-                $2,241
+                {chartData.reduce((acc, item) => acc + item.value, 0)}$
               </Text>
             </View>
-            <View
-              style={{
-                justifyContent: "center",
-              }}
-            >
+            <View style={{}}>
               <RNPickerSelect
                 onValueChange={(value) => setChartPeriod(value)}
                 placeholder={{ label: "Semanal", value: PeriodSells.week }}
@@ -451,50 +349,43 @@ export default function sellerStats() {
                 )}
               />
             </View>
-            <View
-              style={{
-                justifyContent: "center",
-              }}
-            >
-              <Text
-                style={{
-                  borderBottomWidth: 1,
-                  borderBottomColor: "#E94B64",
-                  color: "#E94B64",
-                  fontFamily: "Inter_400Regular",
-                  fontSize: 14,
-                }}
-              >
-                Ver detalles
-              </Text>
-            </View>
           </View>
           <View
             style={{
               overflow: "hidden",
             }}
           >
-            <BarChart
-              data={chartData}
-              adjustToWidth={true} // ✅ se ajusta al ancho del contenedor
-              parentWidth={screenWidth} // ✅ usa el ancho de la pantalla
-              barWidth={18} // ajusta según diseño
-              spacing={20} // espacio entre barras
-              yAxisThickness={0} // opcional: oculta eje Y
-              hideRules={true} // opcional: limpia el diseño
-              height={200}
-              width={290}
-              minHeight={3}
-              noOfSections={4}
-              xAxisThickness={0}
-              xAxisLabelTextStyle={{ color: "gray" }}
-              yAxisTextStyle={{ color: "gray" }}
-              isAnimated
-              animationDuration={300}
-              showGradient
-              barBorderTopLeftRadius={5}
-              barBorderTopRightRadius={5}
-            />
+            <ScrollView horizontal>
+              {loading ? (
+                <ActivityIndicator size="large" color="#D61355" />
+              ) : chartData.length === 0 ? (
+                <Text
+                  style={{
+                    fontFamily: "Inter_400Regular",
+                    color: "#999",
+                    textAlign: "center",
+                  }}
+                >
+                  No hay datos disponibles
+                </Text>
+              ) : (
+                <BarChart
+                  data={chartData}
+                  adjustToWidth
+                  parentWidth={screenWidth - 40}
+                  barWidth={18}
+                  spacing={20}
+                  yAxisThickness={0}
+                  hideRules
+                  height={200}
+                  isAnimated
+                  animationDuration={300}
+                  showGradient
+                  barBorderTopLeftRadius={6}
+                  barBorderTopRightRadius={6}
+                />
+              )}
+            </ScrollView>
           </View>
         </View>
       </ScrollView>
@@ -516,7 +407,6 @@ export default function sellerStats() {
       >
         <View
           style={{
-            justifyContent: "space-between",
             flexDirection: "row",
           }}
         >
@@ -533,10 +423,10 @@ export default function sellerStats() {
 
           <RNPickerSelect
             onValueChange={(value) => setChartPeriod(value)}
-            placeholder={{ label: "Semanal", value: PeriodProducts.week }}
+            placeholder={{ label: "Semanal", value: PeriodSells.week }}
             items={[
-              { label: "Mensual", value: PeriodProducts.month },
-              { label: "Anual", value: PeriodProducts.year },
+              { label: "Mensual", value: PeriodSells.month },
+              { label: "Anual", value: PeriodSells.year },
             ]}
             style={{
               inputIOS: {
@@ -728,10 +618,10 @@ export default function sellerStats() {
 
           <RNPickerSelect
             onValueChange={(value) => setChartPeriod(value)}
-            placeholder={{ label: "Semanal", value: PeriodProducts.week }}
+            placeholder={{ label: "Semanal", value: PeriodSells.week }}
             items={[
-              { label: "Mensual", value: PeriodProducts.month },
-              { label: "Anual", value: PeriodProducts.year },
+              { label: "Mensual", value: PeriodSells.month },
+              { label: "Anual", value: PeriodSells.year },
             ]}
             style={{
               inputIOS: {
