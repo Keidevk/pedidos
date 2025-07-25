@@ -16,7 +16,7 @@ export const useStatsChart = (shopId: number, period: string, date: Date) => {
       setLoading(true);
       try {
         const query = `?shopId=${shopId}&period=${period}&date=${date.toISOString()}`;
-        const res = await fetch(`http://192.168.3.6:3000/getStats${query}`);
+        const res = await fetch(`${process.env.EXPO_PUBLIC_HOST}/getStats${query}`);
         const rawData = await res.json();
 
         let formatted: barDataItem[] = [];
