@@ -1,46 +1,10 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { Tabs } from "expo-router";
-import * as SQLite from "expo-sqlite";
 import { Text, View } from "react-native";
 export default function SellerLayout() {
-  const createDbIfNeeded = async (db: SQLite.SQLiteDatabase) => {
-    console.log("Creating db if needed");
-    await db.execAsync(`
-      CREATE TABLE IF NOT EXISTS transactions (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  product VARCHAR(50),
-  client_name VARCHAR(50),
-  amount INT,
-  date DATE UNIQUE
-);
-
-INSERT OR IGNORE INTO transactions (product, client_name, amount, date) VALUES
-('Cordless vacuum cleaner for quick clean-ups.', 'Townsend Camlin', 584, '1733576243000'),
-('Vertical shoe rack for saving closet space.', 'Bliss Lilburn', 28, '1739239040000'),
-('Rich and tangy balsamic vinegar, perfect for dressings.', 'Seth Rubica', 683, '1730413040000'),
-('Bartender kit with shaker, jigger, and strainer.', 'Deni Hasty', 701, '1751050483000'),
-('High-quality leather wallet with multiple compartments.', 'Taddeusz Puckinghorne', 467, '1733491660000'),
-('Durable baking sheet coated for easy food release.', 'Bertie Scandred', 525, '1730779789000'),
-('All-natural skincare set for daily use.', 'Derril Wimp', 11, '1732776830000'),
-('Delicious recipes focusing on plant-based ingredients.', 'Abigale Grahl', 281, '1728518007000'),
-('Classic chino shorts in a versatile color for summer adventures.', 'Gerri Pirrone', 428, '1736228659000'),
-('A mix of wild rice with herbs and spices, ready to serve.', 'Den Euplate', 808, '1727027041000'),
-('Lightweight and breathable running shorts for your workouts.', 'Petronilla Norwood', 389, '1748944520000'),
-('Freshly baked bagels, perfect for breakfast or snacks.', 'Haily McMenamin', 75, '1751587376000'),
-('3D model puzzle kit for creative builders.', 'Jilly Reay', 23, '1724395265000'),
-('Lightweight and durable hammock for relaxing in nature.', 'Dominique Castelijn', 925, '1750901009000'),
-('Stylish insulated lunch bag for on-the-go meals.', 'Danyelle Tilburn', 40, '1749424844000'),
-('A retro-style button-down shirt with a relaxed fit.', 'Terencio Roby', 340, '1745465320000'),
-('Canned diced tomatoes, great base for sauces and soups.', 'Aurea Anning', 321, '1721581775000'),
-('All ingredients included for delicious chicken fajitas.', 'Nancey Kondratenko', 464, '1734902976000');
-    `);
-  };
   return (
-    <SQLite.SQLiteProvider
-      databaseName="transactions.db"
-      onInit={createDbIfNeeded}
-    >
+    <View>
       <View
         style={{
           display: "flex",
@@ -220,6 +184,6 @@ INSERT OR IGNORE INTO transactions (product, client_name, amount, date) VALUES
           }}
         />
       </Tabs>
-    </SQLite.SQLiteProvider>
+    </View>
   );
 }
