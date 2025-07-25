@@ -5,16 +5,19 @@ import {
   Inter_700Bold,
   useFonts,
 } from "@expo-google-fonts/inter";
+import { NavigationProp } from "@react-navigation/native";
 import { Image } from "expo-image";
-import React, { useEffect } from "react";
-import { Dimensions, ScrollView, Text, View } from "react-native";
+import { useNavigation } from "expo-router";
+import React from "react";
+import {
+  Dimensions,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { BarChart, barDataItem } from "react-native-gifted-charts";
 import RNPickerSelect from "react-native-picker-select";
-import {
-  processMonthlyData,
-  processWeeklyData,
-  processYearlyData,
-} from "./utils/dataProcessHelpers";
 
 enum Period {
   week = "week",
@@ -35,6 +38,15 @@ type weeklySummary = {
   total: number;
 };
 
+type RootParamList = {
+  sellerOrder: undefined; // o con props si los necesita
+  sellerRequests: undefined; // o con props si los necesita
+  sellerReviews: undefined; // o con props si los necesita
+  sellerStats: undefined; // o con props si los necesita
+};
+
+// ✅ con tipo seguro
+
 export default function sellerStats() {
   useFonts({
     Inter_600SemiBold,
@@ -49,119 +61,8 @@ export default function sellerStats() {
   const [currentEndDate, setCurrentEndDate] = React.useState<Date>(new Date());
   const [chartKey, setChartKey] = React.useState<number>(0);
 
-  const fetchStatsData = async () => {
-    try {
-      const shopId = 3; // puedes hacerlo dinámico según sesión
-      const query = `?shopId=${shopId}&period=${chartPeriod}&date=${currentDate.toISOString()}`;
-      const response = await fetch(`http://192.168.3.6:3000/getStats${query}`);
-      const rawData = await response.json();
-
-      let formatted = [];
-
-      if (chartPeriod === Period.week) {
-        formatted = processWeeklyData(rawData);
-      } else if (chartPeriod === Period.month) {
-        formatted = processMonthlyData(rawData, currentDate);
-      } else {
-        formatted = processYearlyData(rawData);
-      }
-
-      setChartData(formatted);
-      setChartKey((prev) => prev + 1);
-    } catch (error) {
-      console.error("Error al obtener estadísticas:", error);
-      setChartData([]); // fallback visual
-    }
-  };
-
-  useEffect(() => {
-    fetchStatsData();
-  }, [chartPeriod, currentDate]);
-
-  const fetchWeeklyData = async (startDate: number, endDate: number) => {
-    try {
-      const shopId = 3; // ← ajusta según contexto
-      const query = `?shopId=${shopId}&period=week&date=${new Date(
-        startDate
-      ).toISOString()}`;
-      const response = await fetch(`http://192.168.3.6:3000/getStats${query}`);
-      const data = await response.json();
-      return data;
-    } catch (error) {
-      console.error("Error al obtener datos semanales:", error);
-      return [];
-    }
-  };
-  const fetchMonthlyData = async (startDate: number, endDate: number) => {
-    try {
-      const shopId = 3;
-      const query = `?shopId=${shopId}&period=month&date=${new Date(
-        startDate
-      ).toISOString()}`;
-      const response = await fetch(`http://192.168.3.6:3000/getStats${query}`);
-      const data = await response.json();
-      return data;
-    } catch (error) {
-      console.error("Error al obtener datos mensuales:", error);
-      return [];
-    }
-  };
-  const fetchYearlyMonthlyData = async (year: number) => {
-    try {
-      const shopId = 3;
-      const query = `?shopId=${shopId}&period=year&date=${new Date(
-        `${year}-01-01`
-      ).toISOString()}`;
-      const response = await fetch(`http://192.168.3.6:3000/getStats${query}`);
-      const data = await response.json();
-      return data;
-    } catch (error) {
-      console.error("Error al obtener datos anuales:", error);
-      return [];
-    }
-  };
-
-  const getWeekRange = (date: Date) => {
-    const startOfWeek = new Date(date.setDate(date.getDate() - date.getDay()));
-    const endOfWeek = new Date(date.setDate(startOfWeek.getDate() + 6));
-    return {
-      startDate: Math.floor(startOfWeek.getTime()),
-      endDate: Math.floor(endOfWeek.getTime()),
-    };
-  };
-
-  const getMonthRange = (date: Date) => {
-    const year = date.getFullYear();
-    const month = date.getMonth();
-
-    const startOfMonth = new Date(year, month, 1);
-    const endOfMonth = new Date(year, month + 1, 0); // Día 0 del siguiente mes = último día actual
-
-    return {
-      startDate: Math.floor(startOfMonth.getTime()),
-      endDate: Math.floor(endOfMonth.getTime()),
-    };
-  };
-
-  const getYearMonthRanges = (date: Date) => {
-    const year = date.getFullYear();
-
-    const months = Array.from({ length: 12 }, (_, i) => {
-      const startOfMonth = new Date(year, i, 1);
-      const endOfMonth = new Date(year, i + 1, 0); // Día 0 del siguiente mes
-
-      return {
-        month: i + 1, // Opcional: número del mes (1–12)
-        startDate: Math.floor(startOfMonth.getTime()),
-        endDate: Math.floor(endOfMonth.getTime()),
-      };
-    });
-
-    return months;
-  };
-
   const screenWidth = Dimensions.get("window").width;
-
+  const navigation = useNavigation<NavigationProp<RootParamList>>();
   return (
     <ScrollView
       contentContainerStyle={{
@@ -178,14 +79,16 @@ export default function sellerStats() {
           gap: 20,
         }}
       >
-        <View
+        <TouchableOpacity
           style={{
             display: "flex",
             backgroundColor: "white",
             borderRadius: 10,
             padding: 20,
-            flexShrink: 50,
+            overflow: "hidden",
+            width: "42%",
           }}
+          onPress={() => navigation.navigate("sellerOrder")}
         >
           <Text
             style={{
@@ -206,15 +109,17 @@ export default function sellerStats() {
           >
             Pedidos en curso
           </Text>
-        </View>
-        <View
+        </TouchableOpacity>
+        <TouchableOpacity
           style={{
             display: "flex",
             backgroundColor: "white",
             borderRadius: 10,
             padding: 20,
-            flexShrink: 50,
+            overflow: "hidden",
+            width: "42%",
           }}
+          onPress={() => navigation.navigate("sellerRequests")}
         >
           <Text
             style={{
@@ -235,7 +140,7 @@ export default function sellerStats() {
           >
             Solicitud de delivery
           </Text>
-        </View>
+        </TouchableOpacity>
       </View>
       <View
         style={{
@@ -341,17 +246,22 @@ export default function sellerStats() {
               justifyContent: "center",
             }}
           >
-            <Text
-              style={{
-                borderBottomWidth: 1,
-                borderBottomColor: "#E94B64",
-                color: "#E94B64",
-                fontFamily: "Inter_400Regular",
-                fontSize: 14,
-              }}
+            <TouchableOpacity
+              style={{}}
+              onPress={() => navigation.navigate("sellerStats")}
             >
-              Ver detalles
-            </Text>
+              <Text
+                style={{
+                  borderBottomWidth: 1,
+                  borderBottomColor: "#E94B64",
+                  color: "#E94B64",
+                  fontFamily: "Inter_400Regular",
+                  fontSize: 14,
+                }}
+              >
+                Ver detalles
+              </Text>
+            </TouchableOpacity>
           </View>
         </View>
         <View
@@ -359,27 +269,31 @@ export default function sellerStats() {
             overflow: "hidden",
           }}
         >
-          <BarChart
-            data={chartData}
-            adjustToWidth={true} // ✅ se ajusta al ancho del contenedor
-            parentWidth={screenWidth} // ✅ usa el ancho de la pantalla
-            barWidth={18} // ajusta según diseño
-            spacing={20} // espacio entre barras
-            yAxisThickness={0} // opcional: oculta eje Y
-            hideRules={true} // opcional: limpia el diseño
-            height={200}
-            width={290}
-            minHeight={3}
-            noOfSections={4}
-            xAxisThickness={0}
-            xAxisLabelTextStyle={{ color: "gray" }}
-            yAxisTextStyle={{ color: "gray" }}
-            isAnimated
-            animationDuration={300}
-            showGradient
-            barBorderTopLeftRadius={5}
-            barBorderTopRightRadius={5}
-          />
+          {chartData.length === 0 ? (
+            <Text>No hay datos disponibles</Text>
+          ) : (
+            <BarChart
+              data={chartData}
+              adjustToWidth={true} // ✅ se ajusta al ancho del contenedor
+              parentWidth={screenWidth} // ✅ usa el ancho de la pantalla
+              barWidth={18} // ajusta según diseño
+              spacing={20} // espacio entre barras
+              yAxisThickness={0} // opcional: oculta eje Y
+              hideRules={true} // opcional: limpia el diseño
+              height={200}
+              width={290}
+              minHeight={3}
+              noOfSections={4}
+              xAxisThickness={0}
+              xAxisLabelTextStyle={{ color: "gray" }}
+              yAxisTextStyle={{ color: "gray" }}
+              isAnimated
+              animationDuration={300}
+              showGradient
+              barBorderTopLeftRadius={5}
+              barBorderTopRightRadius={5}
+            />
+          )}
         </View>
       </View>
       <View
@@ -402,16 +316,21 @@ export default function sellerStats() {
           <Text style={{ fontFamily: "Inter_400Regular", fontSize: 14 }}>
             Reseñas
           </Text>
-          <Text
-            style={{
-              fontFamily: "Inter_400Regular",
-              color: "#E94B64",
-              borderBottomWidth: 1,
-              borderBottomColor: "#E94B64",
-            }}
+          <TouchableOpacity
+            style={{}}
+            onPress={() => navigation.navigate("sellerReviews")}
           >
-            Ver todas las reseñas
-          </Text>
+            <Text
+              style={{
+                fontFamily: "Inter_400Regular",
+                color: "#E94B64",
+                borderBottomWidth: 1,
+                borderBottomColor: "#E94B64",
+              }}
+            >
+              Ver todas las reseñas
+            </Text>
+          </TouchableOpacity>
         </View>
         <View
           style={{
@@ -474,7 +393,6 @@ export default function sellerStats() {
             alignItems: "center",
           }}
         >
-          <Text style={{}}></Text>
           <Text style={{ fontFamily: "Inter_400Regular", fontSize: 14 }}>
             Populares de esta semana
           </Text>
