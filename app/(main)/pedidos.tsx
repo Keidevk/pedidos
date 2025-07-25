@@ -56,6 +56,7 @@ export default function Pedidos(){
         const response = await fetch(`${process.env.EXPO_PUBLIC_HOST}/api/order/${userId}`);
         const result = await response.json();
         const pedidos: Pedido[] = await result.data;
+        console.log(pedidos)
         if(!pedidos) return {pendientes:[],listos:[]};
         const tiendas = pedidos.map(p=>p.tiendaId)
         fetchAllShopData(tiendas);

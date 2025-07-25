@@ -35,6 +35,7 @@ async function getItem(item:string,setState:Dispatch<string>){
 async function productFetch(category:string | string[],setState:Dispatch<Producto[]|null>){
     const response = await fetch(`${process.env.EXPO_PUBLIC_HOST}/api/product/getproductsbycategory/${category}`);
     const data = await response.json();
+    console.log(data)
     setState(data)
 }
 

@@ -79,13 +79,15 @@ export default function MenuPrincipal() {
   useFocusEffect(
     useCallback(() => {
       let isActive = true;
+      console.log(userId)
 
       async function initial() {
         getItem("@userId", setUserId);
         getItem("@auth_token", setLogged);
-        if (!isActive) return;
-        getOrders(userId, setOrders);
-        getShops(setShops);
+        if (!isActive && userId === null)return;
+        getOrders(userId,setOrders)
+        getShops(setShops)
+
       }
       initial();
       return () => {
@@ -125,7 +127,7 @@ export default function MenuPrincipal() {
           </View>
           <View style={{ flexDirection: "row", marginLeft: "4%" }}>
             <TouchableOpacity
-              onPress={() => handlerCategory("Almuerzo")}
+              onPress={() => handlerCategory("Desayuno")}
               style={style.button_etiqueta}
             >
               <Image
@@ -133,7 +135,7 @@ export default function MenuPrincipal() {
                 style={style.image_etiqueta}
                 source={require("../../assets/images/tenedor.png")}
               ></Image>
-              <Text style={style.text_etiqueta}>Almuerzos</Text>
+              <Text style={style.text_etiqueta}>Desayuno</Text>
             </TouchableOpacity>
             <TouchableOpacity
               onPress={() => handlerCategory("Postres")}
@@ -226,7 +228,7 @@ export default function MenuPrincipal() {
                   : undefined;
                 return (
                   <View style={{ flexDirection: "row" }} key={index}>
-                    <View
+                    <TouchableOpacity onPress={()=>router.navigate('/(main)/pedidos')}
                       style={{
                         backgroundColor: "#E94B64",
                         height: 225,
@@ -248,20 +250,28 @@ export default function MenuPrincipal() {
                           color: "white",
                           marginLeft: 10,
                           fontFamily: "Inter_400Regular",
+                          fontSize:16
                         }}
                       >
                         {tienda?.nombre}
                       </Text>
+                      <Text style={{
+                        color: "white",
+                        marginLeft: 10,
+                        fontFamily: "Inter_400Regular",}}
+                        >
+                        Pedido #{item.id.slice(0,6)}</Text>
                       <Text
                         style={{
                           color: "white",
                           marginLeft: 10,
                           fontFamily: "Inter_400Regular",
+                          fontSize:16
                         }}
                       >
                         ${item.total}
                       </Text>
-                    </View>
+                    </TouchableOpacity>
                   </View>
                 );
               })}
