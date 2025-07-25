@@ -1,8 +1,8 @@
+import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { Tabs } from "expo-router";
 import * as SQLite from "expo-sqlite";
 import { Text, View } from "react-native";
-
 export default function SellerLayout() {
   const createDbIfNeeded = async (db: SQLite.SQLiteDatabase) => {
     console.log("Creating db if needed");
@@ -126,13 +126,19 @@ INSERT OR IGNORE INTO transactions (product, client_name, amount, date) VALUES
         <Tabs.Screen
           name="sellerMain"
           options={{
-            href: null,
+            tabBarItemStyle: {},
+            tabBarIconStyle: {},
+            title: "Inicio",
+            tabBarIcon: ({ focused }) => (
+              <Ionicons name="home-outline" size={24} color="#333" />
+            ),
           }}
         />
 
         <Tabs.Screen
           name="sellerRequests"
           options={{
+            href: null,
             tabBarItemStyle: {},
             tabBarIconStyle: {},
             title: "Solicitudes",
@@ -147,9 +153,11 @@ INSERT OR IGNORE INTO transactions (product, client_name, amount, date) VALUES
             ),
           }}
         />
+
         <Tabs.Screen
           name="sellerOrder"
           options={{
+            href: null,
             title: "Orden",
             tabBarIconStyle: {},
             tabBarIcon: ({ focused }) => (
@@ -166,6 +174,7 @@ INSERT OR IGNORE INTO transactions (product, client_name, amount, date) VALUES
         <Tabs.Screen
           name="sellerStats"
           options={{
+            href: null,
             title: "Estadísticas",
             tabBarIcon: ({ focused }) => (
               <Image
@@ -181,6 +190,7 @@ INSERT OR IGNORE INTO transactions (product, client_name, amount, date) VALUES
         <Tabs.Screen
           name="sellerChat"
           options={{
+            href: null,
             title: "Chat",
             tabBarIcon: ({ focused }) => (
               <Image
@@ -194,8 +204,9 @@ INSERT OR IGNORE INTO transactions (product, client_name, amount, date) VALUES
           }}
         />
         <Tabs.Screen
-          name="sellerShop"
+          name="sellerReviews"
           options={{
+            href: null,
             title: "Tienda",
             tabBarIcon: ({ focused }) => (
               <Image
