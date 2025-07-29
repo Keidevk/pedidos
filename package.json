@@ -49,7 +49,9 @@
     "react-native-svg": "15.11.2",
     "react-native-web": "~0.20.0",
     "react-native-webview": "13.13.5",
-    "undefined": "@expo-google-fonts/"
+    "undefined": "@expo-google-fonts/",
+    "expo-image-picker": "~16.1.4",
+    "expo-media-library": "~17.1.7"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",

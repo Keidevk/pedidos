@@ -49,6 +49,25 @@ export default function SellerLayout() {
       />
 
       <Tabs.Screen
+        name="sellerDashboardCreateProduct"
+        options={{
+          href: null,
+          tabBarItemStyle: {},
+          tabBarIconStyle: {},
+          title: "Solicitudes",
+          tabBarIcon: ({ focused }) => (
+            <Image
+              source={require("../../assets/images/vehicle-car-profile-ltr-clock-20-regular.svg")}
+              style={{
+                height: 29,
+                width: 29,
+              }}
+            />
+          ),
+        }}
+      />
+
+      <Tabs.Screen
         name="sellerOrder"
         options={{
           href: null,
