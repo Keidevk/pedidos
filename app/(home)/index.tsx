@@ -12,9 +12,9 @@ import { getAuth } from "../utils";
 const userRoutes = {
   cliente: "/(main)/main",
   tienda: "/(seller)/sellerMain",
-  delivery: "/(home)/index",
+  repartidor: "/(delivery)/index",
 };
-type UserType = 'cliente' | 'tienda' | 'delivery';
+type UserType = 'cliente' | 'tienda' | 'repartidor';
 
 export default function Index() {
   const [email, onChangeEmail] = useState("")
@@ -37,8 +37,8 @@ export default function Index() {
     else if(typeUser === 'tienda'){
       router.push({pathname:'/(seller)/sellerMain'});
     }
-    else if(typeUser === 'delivery'){
-      router.push({pathname:'/(home)'})
+    else if(typeUser === 'repartidor'){
+      router.push({pathname:'/(delivery)/opciones'})
     }
   } else {
     
