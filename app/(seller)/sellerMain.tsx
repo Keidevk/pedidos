@@ -157,10 +157,10 @@ export default function sellerStats() {
     const fetchShop = async () => {
       try {
         const res = await fetch(
-          `${process.env.EXPO_PUBLIC_HOST}/api/shop/${shopId}`
+          `${process.env.EXPO_PUBLIC_HOST}/api/shop/userid/${shopId}`
         );
         if (!res.ok) throw new Error("Error al traer datos");
-        console.warn(`${process.env.EXPO_HOST_URL}/api/shop/${shopId}`);
+        console.warn(`${process.env.EXPO_HOST_URL}/api/shop/userid/${shopId}`);
         const data = await res.json();
         console.warn(data);
 
