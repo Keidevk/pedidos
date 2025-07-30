@@ -7,18 +7,16 @@ import {
 } from "@expo-google-fonts/inter";
 import { Image } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
-import { useNavigation } from "expo-router";
+import { router } from "expo-router";
 import { useEffect, useState } from "react";
 import {
   Alert,
-  Button,
   ScrollView,
   Text,
   TextInput,
   TouchableOpacity,
-  View,
+  View
 } from "react-native";
-import { NativeStackNavigationProp } from "react-native-screens/lib/typescript/native-stack/types";
 
 export type RootStackParamList = {
   sellerDashboard: undefined;
@@ -26,8 +24,8 @@ export type RootStackParamList = {
 
 type ProductoFormData = {
   nombre: string;
-  detalles: string;
-  ingredientes: string;
+  // detalles: string;
+  descripcion: string;
   precio: number;
   stock: number;
   tiempoEstimado: string;
@@ -41,15 +39,13 @@ export default function MenuPrincipal() {
     Inter_700Bold,
   });
 
-  const navigation =
-    useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
   const [formData, setFormData] = useState<ProductoFormData>({
     nombre: "",
-    detalles: "",
+    // detalles: "",
     precio: 0,
     stock: 0,
-    ingredientes: "",
+    descripcion: "",
     tiempoEstimado: "",
   });
 
@@ -110,9 +106,17 @@ export default function MenuPrincipal() {
     };
 
     return (
-      <View style={{ flex: 1 }}>
-        <Button title="Adjuntar fotos" onPress={seleccionarImagenes} />
-        <ScrollView horizontal style={{ marginTop: 10 }}>
+      <View style={{ flex: 1 ,flexDirection:'row' }}>
+        <TouchableOpacity style={{borderStyle:'dashed',borderColor:'#E8EAED',borderWidth:1,height:100,width:100}} onPress={seleccionarImagenes}>
+          <View style={{margin:'auto'}}>
+            <Image 
+            source={require('../../assets/images/uploadimage.svg')}
+            style={{width:42,height:42}}
+            />
+            <Text style={{color:'#9C9BA6'}}>Añadir</Text>
+          </View>          
+        </TouchableOpacity>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginTop: 10 }}>
           {imagenes.map((uri, index) => (
             <View key={index} style={{ marginRight: 10 }}>
               <Image
@@ -120,7 +124,12 @@ export default function MenuPrincipal() {
                 style={{ width: 100, height: 100, borderRadius: 8 }}
               />
               <View style={{ marginTop: 5 }}>
-                <Button title="Eliminar" onPress={() => eliminarImagen(uri)} />
+                <TouchableOpacity style={{position:'relative',top:-71,right:-25,zIndex:100}} onPress={() => eliminarImagen(uri)} >
+                  <Image
+                  source={require('../../assets/images/delete-32-regular.svg')}
+                  style={{height:42,width:42}}
+                  />
+                </TouchableOpacity>
                 {/* ✅ FIX */}
               </View>
             </View>
@@ -155,7 +164,7 @@ export default function MenuPrincipal() {
 
     return (
       <View style={{ marginVertical: 20 }}>
-        <Text style={{ fontSize: 16, fontWeight: "600", marginBottom: 10 }}>
+        <Text style={{ fontSize: 16, fontWeight: "600", marginBottom: 5 }}>
           Selecciona una categoría
         </Text>
 
@@ -225,7 +234,7 @@ export default function MenuPrincipal() {
       <View style={{ gap: 25, paddingBottom: 40 }}>
         <TouchableOpacity
           style={{ flexDirection: "row", gap: 10, alignItems: "center" }}
-          onPress={() => navigation.navigate("sellerDashboard")}
+          onPress={() => router.navigate("/(seller)/sellerDashboard")}
         >
           <View
             style={{
@@ -274,6 +283,30 @@ export default function MenuPrincipal() {
               placeholder="Ej. Cachapa rellena"
             />
           </View>
+
+          <View style={{ gap: 16 }}>
+          <Text
+            style={{
+              fontFamily: "Inter_400Regular",
+              textTransform: "uppercase",
+            }}
+          >
+            Descripción
+          </Text>
+          <TextInput
+            style={{
+              borderWidth: 1,
+              borderColor: "#E8EAED",
+              padding: 10,
+              borderRadius: 5,
+              height: 100,
+            }}
+            value={formData.descripcion}
+            onChangeText={(text) => handleChange("descripcion", text)}
+            placeholder="Ej. Hecha con maíz dulce, relleno de queso..."
+            multiline
+          />
+        </View>
 
           <View style={{ gap: 16 }}>
             <Text
@@ -355,31 +388,6 @@ export default function MenuPrincipal() {
             />
           </View>
         </View>
-
-        <View style={{ gap: 16 }}>
-          <Text
-            style={{
-              fontFamily: "Inter_400Regular",
-              textTransform: "uppercase",
-            }}
-          >
-            Ingredientes
-          </Text>
-          <TextInput
-            style={{
-              borderWidth: 1,
-              borderColor: "#E8EAED",
-              padding: 10,
-              borderRadius: 5,
-              height: 100,
-            }}
-            value={formData.ingredientes}
-            onChangeText={(text) => handleChange("ingredientes", text)}
-            placeholder="Ej. Hecha con maíz dulce, relleno de queso..."
-            multiline
-          />
-        </View>
-
         <View style={{ gap: 16 }}>
           <Text
             style={{
@@ -392,7 +400,11 @@ export default function MenuPrincipal() {
           <SelectorCategorias />
         </View>
 
-        <View style={{ gap: 16 }}>
+        <TouchableOpacity onPress={()=>{console.log(formData)}} style={{backgroundColor:'#E94B64',paddingVertical:10,borderRadius:10}}>
+          <Text style={{fontSize:18,fontFamily:'Inter_600SemiBold',color:'white',textAlign:'center'}}>Añadir Al Catálago</Text>
+        </TouchableOpacity>
+        
+        {/* <View style={{ gap: 16 }}>
           <Text
             style={{
               fontFamily: "Inter_400Regular",
@@ -414,7 +426,7 @@ export default function MenuPrincipal() {
             placeholder="Ej. Crujiente por fuera, suave por dentro..."
             multiline
           />
-        </View>
+        </View> */}
       </View>
     </ScrollView>
   );
