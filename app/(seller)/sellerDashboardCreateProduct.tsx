@@ -8,7 +8,7 @@ import {
 import { Image } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
 import { router } from "expo-router";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Alert,
   ScrollView,
@@ -31,6 +31,12 @@ type ProductoFormData = {
   tiempoEstimado: string;
 };
 
+type Categoria = {
+  id: string;
+  nombre: string;
+  icono?: string;
+};
+
 export default function MenuPrincipal() {
   useFonts({
     Inter_600SemiBold,
@@ -38,6 +44,11 @@ export default function MenuPrincipal() {
     Inter_400Regular,
     Inter_700Bold,
   });
+
+  const [categorias, setCategorias] = useState<Categoria[]>([]);
+  const [categoriaSeleccionada, setCategoriaSeleccionada] = useState("");
+  const [imagenes, setImagenes] = useState<string[]>([]);
+
 
 
   const [formData, setFormData] = useState<ProductoFormData>({
@@ -49,24 +60,24 @@ export default function MenuPrincipal() {
     tiempoEstimado: "",
   });
 
-  const CATEGORIAS = [
-    "Desayunos",
-    "Almuerzos",
-    "Cenas",
-    "Bebidas",
-    "Postres",
-    "Snacks",
-  ];
+  // const CATEGORIAS = [
+  //   "Desayunos",
+  //   "Almuerzos",
+  //   "Cenas",
+  //   "Bebidas",
+  //   "Postres",
+  //   "Snacks",
+  // ];
 
   const handleChange = <T extends keyof ProductoFormData>(
     key: T,
     value: ProductoFormData[T]
   ) => {
     setFormData((prev) => ({ ...prev, [key]: value }));
+    console.log("Handle change")
   };
 
   const AdjuntarFotos = () => {
-    const [imagenes, setImagenes] = useState<string[]>([]);
 
     const seleccionarImagenes = async () => {
       if (imagenes.length >= 5) {
@@ -103,6 +114,7 @@ export default function MenuPrincipal() {
 
     const eliminarImagen = (uri: string) => {
       setImagenes((prev) => prev.filter((img) => img !== uri));
+      console.log("Eliminar imagen")
     };
 
     return (
@@ -137,23 +149,19 @@ export default function MenuPrincipal() {
         </ScrollView>
       </View>
     );
-  };
+  }
 
   const SelectorCategorias = () => {
-    const [categoriaSeleccionada, setCategoriaSeleccionada] =
-      useState<string>("");
-    const [categorias, setCategorias] = useState<
-      { id: string; nombre: string; icono?: string }[]
-    >([]);
-
     useEffect(() => {
+      if (categorias.length > 0) return; // ⚠️ Ya se tienen los datos, no volver a pedir
+
       const obtenerCategorias = async () => {
         try {
           const res = await fetch(
             `${process.env.EXPO_PUBLIC_HOST}/api/product/getcategory`
           );
           const data = await res.json();
-          setCategorias(data);
+          setCategorias(Array.isArray(data) ? data : []);
         } catch (error) {
           console.error("Error al obtener categorías:", error);
         }
@@ -400,7 +408,7 @@ export default function MenuPrincipal() {
           <SelectorCategorias />
         </View>
 
-        <TouchableOpacity onPress={()=>{console.log(formData)}} style={{backgroundColor:'#E94B64',paddingVertical:10,borderRadius:10}}>
+        <TouchableOpacity onPress={()=>{console.log(formData+"\n"+categoriaSeleccionada)}} style={{backgroundColor:'#E94B64',paddingVertical:10,borderRadius:10}}>
           <Text style={{fontSize:18,fontFamily:'Inter_600SemiBold',color:'white',textAlign:'center'}}>Añadir Al Catálago</Text>
         </TouchableOpacity>
         
