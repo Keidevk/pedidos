@@ -33,6 +33,12 @@ type ProductoFormData = {
   tiempoEstimado: string;
 };
 
+type Categoria = {
+  id: string;
+  nombre: string;
+  icono?: string;
+};
+
 export default function MenuPrincipal() {
   useFonts({
     Inter_600SemiBold,
@@ -40,6 +46,9 @@ export default function MenuPrincipal() {
     Inter_400Regular,
     Inter_700Bold,
   });
+
+  const [categorias, setCategorias] = useState<Categoria[]>([]);
+  const [categoriaSeleccionada, setCategoriaSeleccionada] = useState("");
 
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
@@ -131,27 +140,23 @@ export default function MenuPrincipal() {
   };
 
   const SelectorCategorias = () => {
-    const [categoriaSeleccionada, setCategoriaSeleccionada] =
-      useState<string>("");
-    const [categorias, setCategorias] = useState<
-      { id: string; nombre: string; icono?: string }[]
-    >([]);
-
     useEffect(() => {
+      if (categorias.length > 0) return; // ⚠️ Ya se tienen los datos, no volver a pedir
+
       const obtenerCategorias = async () => {
         try {
           const res = await fetch(
             `${process.env.EXPO_PUBLIC_HOST}/api/product/getcategory`
           );
           const data = await res.json();
-          setCategorias(data);
+          setCategorias(Array.isArray(data) ? data : []);
         } catch (error) {
           console.error("Error al obtener categorías:", error);
         }
       };
 
       obtenerCategorias();
-    }, []);
+    }, [categorias]);
 
     return (
       <View style={{ marginVertical: 20 }}>
