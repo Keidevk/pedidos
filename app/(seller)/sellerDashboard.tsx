@@ -71,7 +71,7 @@ export default function MenuPrincipal() {
       const fetchShop = async () => {
         try {
           const res = await fetch(
-            `${process.env.EXPO_PUBLIC_HOST}/api/shop/${id}`
+            `${process.env.EXPO_PUBLIC_HOST}/api/shop/userid/${id}`
           );
           if (!res.ok) {
             console.error("⚠️ Falló el fetch con status:", res.status);
