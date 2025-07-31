@@ -30,6 +30,24 @@ export default function SellerLayout() {
       />
 
       <Tabs.Screen
+        name="sellerOrderPage"
+        options={{
+          tabBarItemStyle: {},
+          tabBarIconStyle: {},
+          title: "Ordenes",
+          tabBarIcon: ({ focused }) => (
+            <Image
+              source={require("../../assets/images/delivery-deliveryOrders-icon.svg")}
+              style={{
+                height: 24,
+                width: 18,
+              }}
+            />
+          ),
+        }}
+      />
+
+      <Tabs.Screen
         name="sellerRequests"
         options={{
           href: null,

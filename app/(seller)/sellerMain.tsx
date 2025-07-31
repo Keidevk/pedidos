@@ -424,7 +424,9 @@ export default function sellerStats() {
                   {chartData.reduce((acc, item) => acc + item.value, 0)}$
                 </Text>
               </View>
-              <View style={{}}>
+              <View
+                style={{ flexDirection: "row", alignItems: "center", gap: 2 }}
+              >
                 <RNPickerSelect
                   onValueChange={(value) => setChartPeriod(value)}
                   placeholder={{ label: "Semanal", value: PeriodSells.week }}
@@ -481,6 +483,20 @@ export default function sellerStats() {
                     />
                   )}
                 />
+                <TouchableOpacity
+                  onPress={() => navigation.navigate("sellerStats")}
+                >
+                  <Text
+                    style={{
+                      fontFamily: "Inter_400Regular",
+                      color: "#E94B64",
+                      borderBottomWidth: 1,
+                      borderBottomColor: "#E94B64",
+                    }}
+                  >
+                    Ver más
+                  </Text>
+                </TouchableOpacity>
               </View>
             </View>
             <View

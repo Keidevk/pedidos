@@ -17,6 +17,10 @@ import {
 import { BarChart } from "react-native-gifted-charts";
 import RNPickerSelect from "react-native-picker-select";
 import Svg, { Circle } from "react-native-svg";
+import { useCategorias } from "../hooks/useCategory";
+import { obtenerStatsPedidos } from "../hooks/useGetStatPedidos";
+import { useProductosPorCategoria } from "../hooks/useProductsCategory";
+import { getItem } from "../utils";
 import {
   processMonthlyData,
   processWeeklyData,
@@ -54,8 +58,19 @@ export default function SellerStats() {
   const [chartPeriod, setChartPeriod] = useState<PeriodSells>(PeriodSells.week);
   const [currentDate, setCurrentDate] = useState(new Date());
   const [loading, setLoading] = useState(false);
+  const [stats, setStats] = useState<null | Awaited<
+    ReturnType<typeof obtenerStatsPedidos>
+  >>(null);
+  const { categorias, error } = useCategorias();
+  const [categoriaSeleccionada, setCategoriaSeleccionada] = useState("");
+  const { productos } = useProductosPorCategoria(categoriaSeleccionada);
+  const [shopId, setShopId] = useState("0");
 
-  const shopId = 2; // ⚙️ Si lo tienes por session/context, pásalo por props
+  useEffect(() => {
+    getItem("@userId", setShopId);
+  }, []);
+
+  console.log(shopId);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -116,7 +131,22 @@ export default function SellerStats() {
       }
     };
 
-    fetchData();
+    async function fetchStats() {
+      try {
+        const datos = await obtenerStatsPedidos(
+          `${process.env.EXPO_PUBLIC_HOST}/api/stats/orders/2`
+        );
+        setStats(datos);
+      } catch (error) {
+        console.error("Error al obtener estadísticas:", error);
+      }
+    }
+
+    fetchStats();
+
+    if (shopId !== "0" && shopId !== undefined) {
+      fetchData();
+    }
   }, [chartPeriod, currentDate]);
   const getWeekRange = (currentDate: Date) => {
     const day = currentDate.getDay(); // 0 (Dom) → 6 (Sáb)
@@ -389,7 +419,7 @@ export default function SellerStats() {
           </View>
         </View>
       </ScrollView>
-      <View
+      <ScrollView
         style={{
           backgroundColor: "#fff",
           shadowColor: "#000",
@@ -404,6 +434,8 @@ export default function SellerStats() {
           borderRadius: 30,
           gap: 10,
         }}
+        showsHorizontalScrollIndicator
+        showsVerticalScrollIndicator
       >
         <View
           style={{
@@ -418,10 +450,10 @@ export default function SellerStats() {
               width: 120,
             }}
           >
-            Productos más vendidos
+            Productos por categoría
           </Text>
 
-          <RNPickerSelect
+          {/* <RNPickerSelect
             onValueChange={(value) => setChartPeriod(value)}
             placeholder={{ label: "Semanal", value: PeriodSells.week }}
             items={[
@@ -476,14 +508,15 @@ export default function SellerStats() {
                 }}
               />
             )}
-          />
+          /> */}
+
           <RNPickerSelect
-            onValueChange={(value) => setChartPeriod(value)}
-            placeholder={{ label: "Categoría", value: Categories.one }}
-            items={[
-              { label: "Mensual", value: Categories.two },
-              { label: "Anual", value: Categories.three },
-            ]}
+            onValueChange={(value) => setCategoriaSeleccionada(value)}
+            placeholder={{ label: "Categoría", value: null }}
+            items={categorias.map((cat) => ({
+              label: cat.nombre,
+              value: cat.nombre, // ✅ Ahora el value será el nombre
+            }))}
             style={{
               inputIOS: {
                 fontSize: 14,
@@ -535,7 +568,7 @@ export default function SellerStats() {
           />
         </View>
         <View style={{ flexDirection: "row" }}>
-          <View
+          {/* <View
             style={{
               width: "30%",
               alignItems: "center",
@@ -557,32 +590,57 @@ export default function SellerStats() {
             >
               Total
             </Text>
-          </View>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator
-            contentContainerStyle={{}}
-          >
-            <BorderProgressCircle
-              percentage={29}
-              label="Hamburguesa"
-              size={70}
-            />
-            <BorderProgressCircle
-              percentage={76}
-              label="Pizza"
-              progressColor="#FFC700"
-              size={70}
-            />
-            <BorderProgressCircle
-              percentage={76}
-              label="Pizza"
-              progressColor="#A776F5"
-              size={70}
-            />
+          </View> */}
+          <ScrollView horizontal>
+            {loading ? (
+              <ActivityIndicator size="large" color="#D61355" />
+            ) : productos.length === 0 ? (
+              <Text>No hay productos en esta categoría</Text>
+            ) : (
+              productos.map((prod) => (
+                <View
+                  key={prod.id}
+                  style={{
+                    width: 150,
+                    marginRight: 10,
+                    backgroundColor: "#fff",
+                    borderRadius: 10,
+                    padding: 10,
+                    shadowColor: "#000",
+                    shadowOffset: { width: 0, height: 2 },
+                    shadowOpacity: 0.2,
+                    shadowRadius: 5,
+                  }}
+                >
+                  <Image
+                    source={{
+                      uri: prod.imagen_url.startsWith("//")
+                        ? "https:" + prod.imagen_url
+                        : process.env.EXPO_PUBLIC_HOST + prod.imagen_url,
+                    }}
+                    style={{ width: "100%", height: 80, borderRadius: 6 }}
+                  />
+                  <Text style={{ fontFamily: "Inter_700Bold", fontSize: 14 }}>
+                    {prod.nombre}
+                  </Text>
+                  <Text style={{ fontSize: 12, color: "#666" }}>
+                    {prod.descripcion}
+                  </Text>
+                  <Text
+                    style={{
+                      fontSize: 14,
+                      color: "#D61355",
+                      fontWeight: "bold",
+                    }}
+                  >
+                    ${prod.precio.toFixed(2)}
+                  </Text>
+                </View>
+              ))
+            )}
           </ScrollView>
         </View>
-      </View>
+      </ScrollView>
       <View
         style={{
           backgroundColor: "#fff",
@@ -616,7 +674,7 @@ export default function SellerStats() {
             Pedidos cancelados y completados
           </Text>
 
-          <RNPickerSelect
+          {/* <RNPickerSelect
             onValueChange={(value) => setChartPeriod(value)}
             placeholder={{ label: "Semanal", value: PeriodSells.week }}
             items={[
@@ -671,7 +729,7 @@ export default function SellerStats() {
                 }}
               />
             )}
-          />
+          /> */}
         </View>
         <View style={{ flexDirection: "row" }}>
           <View
@@ -690,7 +748,7 @@ export default function SellerStats() {
                   textAlign: "center",
                 }}
               >
-                1,284
+                {stats?.cancelados.cantidad}
               </Text>
               <Text
                 style={{
@@ -713,7 +771,7 @@ export default function SellerStats() {
                   textAlign: "center",
                 }}
               >
-                1,284
+                {stats?.completados.cantidad}
               </Text>
               <Text
                 style={{
@@ -734,13 +792,13 @@ export default function SellerStats() {
             contentContainerStyle={{}}
           >
             <BorderProgressCircle
-              percentage={29}
+              percentage={Number(stats?.completados.porcentaje)}
               progressColor="#35C01A"
               label="Completados"
               size={70}
             />
             <BorderProgressCircle
-              percentage={76}
+              percentage={Number(stats?.cancelados.porcentaje)}
               label="Cancelados"
               progressColor="#D61355"
               size={70}
