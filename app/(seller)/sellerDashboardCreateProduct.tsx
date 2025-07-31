@@ -5,8 +5,10 @@ import {
   Inter_700Bold,
   useFonts,
 } from "@expo-google-fonts/inter";
+import * as FileSystem from 'expo-file-system';
 import { Image } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
+
 import { router } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
@@ -17,6 +19,7 @@ import {
   TouchableOpacity,
   View
 } from "react-native";
+import { getItem } from "../utils";
 
 export type RootStackParamList = {
   sellerDashboard: undefined;
@@ -44,13 +47,10 @@ export default function MenuPrincipal() {
     Inter_400Regular,
     Inter_700Bold,
   });
-
+  const [userId,setUserId] = useState('')
   const [categorias, setCategorias] = useState<Categoria[]>([]);
   const [categoriaSeleccionada, setCategoriaSeleccionada] = useState("");
-  const [imagenes, setImagenes] = useState<string[]>([]);
-
-
-
+  const [imagenes, setImagenes] = useState<ImagePicker.ImagePickerAsset[]>([]);
   const [formData, setFormData] = useState<ProductoFormData>({
     nombre: "",
     // detalles: "",
@@ -59,6 +59,55 @@ export default function MenuPrincipal() {
     descripcion: "",
     tiempoEstimado: "",
   });
+
+  async function handleCreateProduct(){
+    // const response = await fetch(`${process.env.EXPO_PUBLIC_HOST}/`)
+    // console.log(formData);
+    // console.log(categoriaSeleccionada);
+    getItem('@userId',setUserId)
+    
+    const NewformData = new FormData();
+
+    // Campos del producto
+    NewformData.append("nombre", formData.nombre);
+    NewformData.append("descripcion", formData.descripcion);
+    NewformData.append("precio", formData.precio.toString());
+    NewformData.append("stock_actual", formData.stock.toString());
+    NewformData.append("stock_minimo",'5')
+    // NewformData.append("tiempoEstimado", formData.tiempoEstimado);
+    NewformData.append("tiendaId",userId);
+    // Categoría seleccionada
+    NewformData.append("categoriaId", categoriaSeleccionada);
+      
+    // Imágenes
+
+    for (let i = 0; i < imagenes.length; i++) {
+      const imagen = imagenes[i];
+
+      // Lee el contenido como blob
+      const fileUri = imagen.uri;
+      const fileInfo = await FileSystem.getInfoAsync(fileUri);
+      const fileBlob = {
+        uri: fileInfo.uri,
+        name: `imagen-${i}.png`,
+        type: "image/png",
+      };
+
+      NewformData.append("file", fileBlob as any);
+    }
+    console.log(NewformData)
+    fetch(`${process.env.EXPO_PUBLIC_HOST}/api/product/register`, {
+      method: "POST",
+      body: NewformData,})
+    .then(res => res.json())
+    .then(data => {
+      console.log("Producto creado:", data);
+    })
+    .catch(err => {
+      console.error("Error al crear producto:", err);
+    });
+
+  }
 
   // const CATEGORIAS = [
   //   "Desayunos",
@@ -74,13 +123,12 @@ export default function MenuPrincipal() {
     value: ProductoFormData[T]
   ) => {
     setFormData((prev) => ({ ...prev, [key]: value }));
-    console.log("Handle change")
   };
 
   const AdjuntarFotos = () => {
 
     const seleccionarImagenes = async () => {
-      if (imagenes.length >= 5) {
+      if (imagenes.length >= 1) {
         Alert.alert(
           "Límite alcanzado",
           "Solo puedes adjuntar hasta 5 imágenes."
@@ -95,7 +143,8 @@ export default function MenuPrincipal() {
       });
 
       if (!resultado.canceled && resultado.assets) {
-        const nuevasUris = resultado.assets.map((asset) => asset.uri);
+        const nuevasUris = resultado.assets.map((asset) => asset);
+        const imagenesReales = resultado.assets.map(item=>item)
         const total = imagenes.length + nuevasUris.length;
 
         const permitidas =
@@ -107,14 +156,13 @@ export default function MenuPrincipal() {
             `Solo puedes agregar ${5 - imagenes.length} más.`
           );
         }
-
+        console.log(imagenesReales)
         setImagenes((prev) => [...prev, ...permitidas]);
       }
     };
 
     const eliminarImagen = (uri: string) => {
-      setImagenes((prev) => prev.filter((img) => img !== uri));
-      console.log("Eliminar imagen")
+      setImagenes((prev) => prev.filter((img) => img.uri !== uri));
     };
 
     return (
@@ -128,15 +176,15 @@ export default function MenuPrincipal() {
             <Text style={{color:'#9C9BA6'}}>Añadir</Text>
           </View>          
         </TouchableOpacity>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginTop: 10 }}>
-          {imagenes.map((uri, index) => (
-            <View key={index} style={{ marginRight: 10 }}>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+          {imagenes.map((item, index) => (
+            <View key={index} style={{marginHorizontal:5}}>
               <Image
-                source={{ uri }}
+                source={{uri: item.uri}}
                 style={{ width: 100, height: 100, borderRadius: 8 }}
               />
-              <View style={{ marginTop: 5 }}>
-                <TouchableOpacity style={{position:'relative',top:-71,right:-25,zIndex:100}} onPress={() => eliminarImagen(uri)} >
+              <View>
+                <TouchableOpacity style={{position:'relative',top:-71,right:-25,zIndex:100}} onPress={() => eliminarImagen(item.uri)} >
                   <Image
                   source={require('../../assets/images/delete-32-regular.svg')}
                   style={{height:42,width:42}}
@@ -188,7 +236,8 @@ export default function MenuPrincipal() {
                     paddingVertical: 10,
                     paddingHorizontal: 12,
                     borderRadius: 6,
-                    backgroundColor: seleccionada ? "#003366" : "#E0E0E0",
+                    borderWidth:1,
+                    borderColor: seleccionada ? "#D61355" : "#E6E6E6",
                     flexDirection: "row",
                     alignItems: "center",
                     justifyContent: "center",
@@ -212,7 +261,7 @@ export default function MenuPrincipal() {
                     )} */}
                     <Text
                       style={{
-                        color: seleccionada ? "#fff" : "#000",
+                        color:seleccionada ? "#D61355":"#1A1A1A",
                         textAlign: "center",
                         flexShrink: 1,
                       }}
@@ -293,30 +342,6 @@ export default function MenuPrincipal() {
           </View>
 
           <View style={{ gap: 16 }}>
-          <Text
-            style={{
-              fontFamily: "Inter_400Regular",
-              textTransform: "uppercase",
-            }}
-          >
-            Descripción
-          </Text>
-          <TextInput
-            style={{
-              borderWidth: 1,
-              borderColor: "#E8EAED",
-              padding: 10,
-              borderRadius: 5,
-              height: 100,
-            }}
-            value={formData.descripcion}
-            onChangeText={(text) => handleChange("descripcion", text)}
-            placeholder="Ej. Hecha con maíz dulce, relleno de queso..."
-            multiline
-          />
-        </View>
-
-          <View style={{ gap: 16 }}>
             <Text
               style={{
                 fontFamily: "Inter_400Regular",
@@ -327,8 +352,8 @@ export default function MenuPrincipal() {
             </Text>
             <AdjuntarFotos />
           </View>
-
-          <View style={{ gap: 16 }}>
+        <View style={{flexDirection:'row',alignItems:'center',justifyContent:'space-between',}}>
+          <View style={{width:70, gap: 30 }}>
             <Text
               style={{
                 fontFamily: "Inter_400Regular",
@@ -351,7 +376,7 @@ export default function MenuPrincipal() {
             />
           </View>
 
-          <View style={{ gap: 16 }}>
+          <View style={{width:70,gap: 16 }}>
             <Text
               style={{
                 fontFamily: "Inter_400Regular",
@@ -374,7 +399,7 @@ export default function MenuPrincipal() {
             />
           </View>
 
-          <View style={{ gap: 16 }}>
+          <View style={{width:80, gap: 16 }}>
             <Text
               style={{
                 fontFamily: "Inter_400Regular",
@@ -396,6 +421,30 @@ export default function MenuPrincipal() {
             />
           </View>
         </View>
+        </View>
+         <View style={{ gap: 16 }}>
+          <Text
+            style={{
+              fontFamily: "Inter_400Regular",
+              textTransform: "uppercase",
+            }}
+          >
+            Descripción
+          </Text>
+          <TextInput
+            style={{
+              borderWidth: 1,
+              borderColor: "#E8EAED",
+              padding: 10,
+              borderRadius: 5,
+              height: 100,
+            }}
+            value={formData.descripcion}
+            onChangeText={(text) => handleChange("descripcion", text)}
+            placeholder="Ej. Hecha con maíz dulce, relleno de queso..."
+            multiline
+          />
+        </View>
         <View style={{ gap: 16 }}>
           <Text
             style={{
@@ -408,7 +457,7 @@ export default function MenuPrincipal() {
           <SelectorCategorias />
         </View>
 
-        <TouchableOpacity onPress={()=>{console.log(formData+"\n"+categoriaSeleccionada)}} style={{backgroundColor:'#E94B64',paddingVertical:10,borderRadius:10}}>
+        <TouchableOpacity onPress={handleCreateProduct} style={{backgroundColor:'#E94B64',paddingVertical:10,borderRadius:10}}>
           <Text style={{fontSize:18,fontFamily:'Inter_600SemiBold',color:'white',textAlign:'center'}}>Añadir Al Catálago</Text>
         </TouchableOpacity>
         
