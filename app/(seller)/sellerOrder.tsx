@@ -163,7 +163,11 @@ export default function MenuPrincipal() {
         />
       );
     } else {
-      return;
+      return (
+        <View style={{ width: 32, height: 32 }}>
+          <Text style={{ color: "#fff" }}>X</Text>
+        </View>
+      );
     }
   };
 
