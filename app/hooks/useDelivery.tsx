@@ -19,6 +19,23 @@ type Delivery = {
   documento_identidad: string;
   vehiculo: Vehiculo;
 };
+type ActiveDeliveryResponse = {
+  code: number;
+  deliverys: ActiveDelivery[];
+};
+
+type ActiveDelivery = {
+  id: string;
+  userId: number;
+  tipoVehiculo: string;
+  licencia: string;
+  disponibilidad: boolean;
+  ubicacionActual: string;
+  rating: string;
+  vehiculoDescripcion: string;
+  fotosVehiculo: string;
+};
+
 type Vehiculo = {
   id: string;
   tipoVehiculo: string;
@@ -29,42 +46,41 @@ type Vehiculo = {
   fotos: string;
 };
 
-export const useDelivery = (id: number) => {
-  const [delivery, setDelivery] = useState<any>(null);
+export const useActiveDelivery = () => {
+  const [deliverys, setDeliverys] = useState<ActiveDelivery[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let isMounted = true;
 
-    const fetchDelivery = async () => {
+    const fetchActiveDelivery = async () => {
       try {
         const res = await fetch(
-          `${process.env.EXPO_PUBLIC_HOST}/api/delivery/`
+          `${process.env.EXPO_PUBLIC_HOST}/api/delivery/actives`
         );
-        const json: DeliveryResponse = await res.json();
-        const delivery: Delivery = json.data;
+        const json: ActiveDeliveryResponse = await res.json();
 
         if (!isMounted) return;
 
-        if (json.code === 200 && json.data) {
-          setDelivery(json.data);
+        if (json.code === 200 && json.deliverys) {
+          setDeliverys(json.deliverys);
         } else {
-          setError("Repartidor no encontrado");
+          setError("No se encontraron repartidores disponibles");
         }
       } catch (err) {
-        if (isMounted) setError("Error de red");
+        if (isMounted) setError("Error de red al buscar repartidores");
       } finally {
         if (isMounted) setLoading(false);
       }
     };
 
-    fetchDelivery();
+    fetchActiveDelivery();
 
     return () => {
       isMounted = false;
     };
-  }, [id]);
+  }, []);
 
-  return { delivery, loading, error };
+  return { deliverys, loading, error };
 };
