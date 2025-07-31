@@ -35,6 +35,7 @@ export default function MenuPrincipal() {
   const [pedidoSeleccionado, setPedidoSeleccionado] = useState<Pedido | null>(
     null
   );
+  const [pedidoActualizado, setPedidoActualizado] = useState(["", ""]);
   const [totalOrders, setTotalOrders] = useState<number | null>(null);
 
   const fetchOrderStats = async (shopId: number) => {
@@ -65,19 +66,106 @@ export default function MenuPrincipal() {
 
   useEffect(() => {
     getItem("@userId", setShopId);
-    if (shopId !== "0") {
+  }, []);
+
+  useEffect(() => {
+    if (shopId !== "0" && shopId !== undefined) {
       fetchOrderStats(Number(shopId)).then((value) => {
         if (typeof value === "number") {
           setTotalOrders(value);
         }
       });
     }
-  }, []);
+  }, [shopId]);
 
   const { pedidos, loading, error } = usePedidos(shopId || "");
   const { clientes, loading: loadingClientes } = useClientsByOrder(pedidos);
 
-  console.warn(pedidos, "asdasd");
+  const handleSubmit = async () => {
+    if (
+      pedidoActualizado[0] === pedidoSeleccionado?.id &&
+      pedidoActualizado[0] !== ""
+    ) {
+      try {
+        const res = await fetch(
+          `${process.env.EXPO_PUBLIC_HOST}/api/order/update`,
+          {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              status: pedidoActualizado[1],
+              uuid: pedidoActualizado[0],
+            }),
+          }
+        );
+
+        if (!res.ok) throw new Error("Error al actualizar pedido");
+
+        const data = await res.json();
+        console.log("✅ Pedido actualizado:", data);
+
+        // Opcional: actualizar estado local, cerrar modal, etc.
+        setModalVisible(false);
+        setPedidoActualizado(["", ""]);
+      } catch (err) {
+        console.error("❌ Falló el update:", err);
+      }
+    } else {
+      console.log("🔄 Estado aún no seleccionado");
+    }
+  };
+
+  const handlePedidoIcon = (status: string) => {
+    if (status === "entregado" || status === "listo" || status === "recibido") {
+      return (
+        <Image
+          source={require("../../assets/images/seller-sellerOrder-recibido-icon.svg")}
+          style={{
+            height: 23,
+            width: 23,
+            tintColor: "#fff",
+          }}
+        />
+      );
+    } else if (status === "pendiente") {
+      return (
+        <Image
+          source={require("../../assets/images/seller-sellerOrder-pendiente-icon.svg")}
+          style={{
+            height: 24,
+            width: 22,
+            tintColor: "#fff",
+          }}
+        />
+      );
+    } else if (status === "enCamino") {
+      return (
+        <Image
+          source={require("../../assets/images/seller-sellerOrder-enCamino-icon.svg")}
+          style={{
+            height: 24,
+            width: 18,
+            tintColor: "#fff",
+          }}
+        />
+      );
+    } else if (status === "preparando") {
+      return (
+        <Image
+          source={require("../../assets/images/seller-sellerOrder-preparando-icon.png")}
+          style={{
+            height: 26,
+            width: 26,
+            tintColor: "#fff",
+          }}
+        />
+      );
+    } else {
+      return;
+    }
+  };
 
   return (
     <ScrollView
@@ -185,14 +273,7 @@ export default function MenuPrincipal() {
                         setModalVisible(true);
                       }}
                     >
-                      <Image
-                        source={require("../../assets/images/order-icon.svg")}
-                        style={{
-                          height: 24,
-                          width: 18,
-                          tintColor: "#fff",
-                        }}
-                      />
+                      {handlePedidoIcon(pedido.estado)}
                     </TouchableOpacity>
                     <TouchableOpacity
                       style={{
@@ -204,6 +285,7 @@ export default function MenuPrincipal() {
                         justifyContent: "center",
                         borderColor: "#D61355",
                       }}
+                      onPress={handleSubmit}
                     >
                       <Text
                         style={{
@@ -212,7 +294,9 @@ export default function MenuPrincipal() {
                           fontSize: 13,
                         }}
                       >
-                        Actualizar
+                        {pedidoActualizado[0] === pedido.id
+                          ? `Guardar`
+                          : `Actualizar`}
                       </Text>
                     </TouchableOpacity>
                   </View>
@@ -269,7 +353,14 @@ export default function MenuPrincipal() {
                   </Text>
                   <View>
                     {estadosPedidos.map((estado) => (
-                      <TouchableOpacity style={{}} id={estado}>
+                      <TouchableOpacity
+                        style={{}}
+                        key={`${estado}-${pedidoSeleccionado.id}`}
+                        onPress={() => {
+                          setPedidoActualizado([pedidoSeleccionado.id, estado]);
+                          console.log([pedidoSeleccionado.id, estado]);
+                        }}
+                      >
                         <Text style={{ textTransform: "capitalize" }}>
                           {estado}
                         </Text>
