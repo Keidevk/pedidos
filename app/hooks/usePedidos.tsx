@@ -21,19 +21,16 @@ export function usePedidos(shopId: string) {
 
     const fetchPedidos = async () => {
       try {
-        const res = await fetch(
-          `${process.env.EXPO_PUBLIC_HOST}/api/order/${shopId}`
-        );
+        const url = `${process.env.EXPO_PUBLIC_HOST}/api/stats/orders/${shopId}`;
+        console.log("📦 Fetch desde:", url);
+
+        const res = await fetch(url);
         const json = await res.json();
-        console.log("Res:", json); // ¿data existe?
-        console.log(
-          "URL:",
-          `${process.env.EXPO_PUBLIC_HOST}/api/order/${shopId}`
-        );
-        if (res.ok && Array.isArray(json.data)) {
-          setPedidos(json.data);
+
+        if (res.ok && Array.isArray(json)) {
+          setPedidos(json); // 👈 directamente, sin json.data
         } else {
-          throw new Error("Respuesta inesperada");
+          throw new Error("Formato inesperado en la respuesta");
         }
       } catch (err: any) {
         setError(err.message ?? "Error desconocido");
@@ -41,6 +38,7 @@ export function usePedidos(shopId: string) {
         setLoading(false);
       }
     };
+
     fetchPedidos();
   }, [shopId]);
 
