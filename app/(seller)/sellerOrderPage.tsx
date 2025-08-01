@@ -62,6 +62,7 @@ export default function MenuPrincipal() {
     deliverys,
     loading: loadingDeliverys,
     error: errorDeliverys,
+    refetch: refetchDeliverys, // 💡 importamos refetch
   } = useActiveDelivery();
   const { clientes, fetchCliente } = useClientes();
   const [mostrarModalDelivery, setMostrarModalDelivery] = useState(false);
@@ -94,23 +95,24 @@ export default function MenuPrincipal() {
 
     try {
       const res = await fetch(
-        `${process.env.EXPO_PUBLIC_HOST}/delivery/assignment/${repartidorSeleccionado.userId}/${pedidoActivo.id}`,
+        `${process.env.EXPO_PUBLIC_HOST}/api/delivery/assignment/${repartidorSeleccionado.userId}/${pedidoActivo.id}`,
         {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({}), // Si el backend espera algo más, agregalo aquí
+          body: JSON.stringify({ asignado: true }),
         }
       );
 
       const data = await res.json();
       console.log("Respuesta asignación:", data);
 
-      // Podés agregar algún feedback visual o refrescar pedidos
+      // 🔄 Refresca la lista de repartidores disponibles
+      await refetchDeliverys();
+
       setDeliveryPorConfirmar(null);
       setMostrarModalDelivery(false);
-      // Opcional: actualizar estado de pedido localmente
     } catch (error) {
       console.error("Error al asignar delivery:", error);
     }
@@ -509,7 +511,10 @@ export default function MenuPrincipal() {
                         paddingVertical: 10,
                         borderRadius: 5,
                       }}
-                      onPress={() => setMostrarModalDelivery(true)}
+                      onPress={() => {
+                        refetchDeliverys();
+                        setMostrarModalDelivery(true);
+                      }}
                     >
                       <Text
                         style={{
