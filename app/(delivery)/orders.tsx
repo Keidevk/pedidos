@@ -111,7 +111,7 @@ export default function OrdersByDelivery() {
           <View style={{ padding: 20 }}>
             <TouchableOpacity style={{ marginBottom: 20 }}>
               <Text style={{ fontSize: 20, fontFamily: "Inter_600SemiBold" }}>
-                Mis entregas
+                Mis pedidos
               </Text>
             </TouchableOpacity>
 
@@ -141,8 +141,8 @@ export default function OrdersByDelivery() {
                     {estado === "activa"
                       ? "Pendientes"
                       : estado === "listo"
-                      ? "Completadas"
-                      : "Canceladas"}
+                      ? "Completados"
+                      : "Cancelados"}
                   </Text>
                 </TouchableOpacity>
               ))}
