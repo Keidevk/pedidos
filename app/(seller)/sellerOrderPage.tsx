@@ -16,6 +16,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { useClientes } from "../hooks/useClientes";
 import { useActiveDelivery } from "../hooks/useDelivery";
 import { getItem } from "../utils";
 type ActiveDelivery = {
@@ -62,7 +63,7 @@ export default function MenuPrincipal() {
     loading: loadingDeliverys,
     error: errorDeliverys,
   } = useActiveDelivery();
-
+  const { clientes, fetchCliente } = useClientes();
   const [mostrarModalDelivery, setMostrarModalDelivery] = useState(false);
   const [repartidorSeleccionado, setRepartidorSeleccionado] =
     useState<ActiveDelivery | null>(null);
@@ -87,6 +88,33 @@ export default function MenuPrincipal() {
   const pedidosFiltrados = pedidos.filter(
     (p) => agruparEstado(p.estado) === filtro
   );
+
+  const asignarDelivery = async () => {
+    if (!repartidorSeleccionado || !pedidoActivo) return;
+
+    try {
+      const res = await fetch(
+        `${process.env.EXPO_PUBLIC_HOST}/delivery/assignment/${repartidorSeleccionado.userId}/${pedidoActivo.id}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({}), // Si el backend espera algo más, agregalo aquí
+        }
+      );
+
+      const data = await res.json();
+      console.log("Respuesta asignación:", data);
+
+      // Podés agregar algún feedback visual o refrescar pedidos
+      setDeliveryPorConfirmar(null);
+      setMostrarModalDelivery(false);
+      // Opcional: actualizar estado de pedido localmente
+    } catch (error) {
+      console.error("Error al asignar delivery:", error);
+    }
+  };
 
   return (
     <View style={{ flex: 1, backgroundColor: "#fff" }}>
@@ -152,7 +180,14 @@ export default function MenuPrincipal() {
           </>
         }
         renderItem={({ item }) => (
-          <TouchableOpacity onPress={() => setPedidoActivo(item)}>
+          <TouchableOpacity
+            onPress={() => {
+              setPedidoActivo(item);
+              if (!clientes[item.clienteId]) {
+                fetchCliente(item.clienteId);
+              }
+            }}
+          >
             <View
               style={{
                 padding: 15,
@@ -162,6 +197,8 @@ export default function MenuPrincipal() {
                 shadowColor: "#000",
                 shadowOpacity: 0.05,
                 shadowRadius: 2,
+                borderWidth: 1,
+                borderColor: "#D61355",
               }}
             >
               <Text
@@ -283,7 +320,8 @@ export default function MenuPrincipal() {
                     <Text
                       style={{ maxWidth: 100, fontFamily: "Inter_700Bold" }}
                     >
-                      Usuario
+                      {clientes[pedidoActivo?.clienteId || ""] ??
+                        "Cargando nombre..."}
                     </Text>
                     <TouchableOpacity style={{}}>
                       <View
@@ -440,6 +478,7 @@ export default function MenuPrincipal() {
                               }}
                               onPress={() => {
                                 setRepartidorSeleccionado(deliveryPorConfirmar);
+                                asignarDelivery();
                                 setDeliveryPorConfirmar(null);
                                 setMostrarModalDelivery(false);
                               }}
