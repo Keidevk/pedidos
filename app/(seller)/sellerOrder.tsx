@@ -8,7 +8,7 @@ import {
 import { Image } from "expo-image";
 import { useEffect, useState } from "react";
 import { Modal, ScrollView, Text, TouchableOpacity, View } from "react-native";
-import { useClientsByOrder } from "../hooks/useClientByOrder";
+import { useClientes } from "../hooks/useClientes";
 import { usePedidos } from "../hooks/usePedidos";
 import { getItem } from "../utils";
 
@@ -30,6 +30,7 @@ export default function MenuPrincipal() {
     Inter_400Regular,
     Inter_700Bold,
   });
+
   const [shopId, setShopId] = useState("0");
   const [modalVisible, setModalVisible] = useState(false);
   const [pedidoSeleccionado, setPedidoSeleccionado] = useState<Pedido | null>(
@@ -38,31 +39,8 @@ export default function MenuPrincipal() {
   const [pedidoActualizado, setPedidoActualizado] = useState(["", ""]);
   const [totalOrders, setTotalOrders] = useState<number | null>(null);
 
-  const fetchOrderStats = async (shopId: number) => {
-    try {
-      const res = await fetch(
-        `${process.env.EXPO_PUBLIC_HOST}/api/stats/orders?shopId=${shopId}`
-      );
-      if (!res.ok) throw new Error("Error al obtener pedidos");
-
-      const totalOrders = await res.json(); // Esto será un número directamente: 1
-      console.log("🧾 Total de pedidos:", totalOrders);
-      return totalOrders;
-    } catch (err) {
-      console.error("❌ Falló el fetch de pedidos:", err);
-      return null;
-    }
-  };
-
-  const estadosPedidos = [
-    "pendiente",
-    "recibido",
-    "preparando",
-    "listo",
-    "enCamino",
-    "entregado",
-    "cancelado",
-  ];
+  const { pedidos, loading, error } = usePedidos(shopId || "");
+  const { clientes, fetchCliente } = useClientes();
 
   useEffect(() => {
     getItem("@userId", setShopId);
@@ -78,8 +56,31 @@ export default function MenuPrincipal() {
     }
   }, [shopId]);
 
-  const { pedidos, loading, error } = usePedidos(shopId || "");
-  const { clientes, loading: loadingClientes } = useClientsByOrder(pedidos);
+  const estadosPedidos = [
+    "pendiente",
+    "recibido",
+    "preparando",
+    "listo",
+    "enCamino",
+    "entregado",
+    "cancelado",
+  ];
+
+  const fetchOrderStats = async (shopId: number) => {
+    try {
+      const res = await fetch(
+        `${process.env.EXPO_PUBLIC_HOST}/api/stats/orders?shopId=${shopId}`
+      );
+      if (!res.ok) throw new Error("Error al obtener pedidos");
+
+      const totalOrders = await res.json();
+      console.log("🧾 Total de pedidos:", totalOrders);
+      return totalOrders;
+    } catch (err) {
+      console.error("❌ Falló el fetch de pedidos:", err);
+      return null;
+    }
+  };
 
   const handleSubmit = async () => {
     if (
@@ -105,8 +106,6 @@ export default function MenuPrincipal() {
 
         const data = await res.json();
         console.log("✅ Pedido actualizado:", data);
-
-        // Opcional: actualizar estado local, cerrar modal, etc.
         setModalVisible(false);
         setPedidoActualizado(["", ""]);
       } catch (err) {
@@ -118,57 +117,28 @@ export default function MenuPrincipal() {
   };
 
   const handlePedidoIcon = (status: string) => {
-    if (status === "entregado" || status === "listo" || status === "recibido") {
-      return (
-        <Image
-          source={require("../../assets/images/seller-sellerOrder-recibido-icon.svg")}
-          style={{
-            height: 23,
-            width: 23,
-            tintColor: "#fff",
-          }}
-        />
-      );
-    } else if (status === "pendiente") {
-      return (
-        <Image
-          source={require("../../assets/images/seller-sellerOrder-pendiente-icon.svg")}
-          style={{
-            height: 24,
-            width: 22,
-            tintColor: "#fff",
-          }}
-        />
-      );
-    } else if (status === "enCamino") {
-      return (
-        <Image
-          source={require("../../assets/images/seller-sellerOrder-enCamino-icon.svg")}
-          style={{
-            height: 24,
-            width: 18,
-            tintColor: "#fff",
-          }}
-        />
-      );
-    } else if (status === "preparando") {
-      return (
-        <Image
-          source={require("../../assets/images/seller-sellerOrder-preparando-icon.png")}
-          style={{
-            height: 26,
-            width: 26,
-            tintColor: "#fff",
-          }}
-        />
-      );
-    } else {
-      return (
-        <View style={{ width: 32, height: 32 }}>
-          <Text style={{ color: "#fff" }}>X</Text>
-        </View>
-      );
-    }
+    const iconMap: Record<string, any> = {
+      recibido: require("../../assets/images/seller-sellerOrder-recibido-icon.svg"),
+      listo: require("../../assets/images/seller-sellerOrder-recibido-icon.svg"),
+      entregado: require("../../assets/images/seller-sellerOrder-recibido-icon.svg"),
+      pendiente: require("../../assets/images/seller-sellerOrder-pendiente-icon.svg"),
+      enCamino: require("../../assets/images/seller-sellerOrder-enCamino-icon.svg"),
+      preparando: require("../../assets/images/seller-sellerOrder-preparando-icon.png"),
+    };
+
+    const icon = iconMap[status];
+    return icon ? (
+      <Image
+        source={icon}
+        style={{ height: 24, width: 24, tintColor: "#fff" }}
+      />
+    ) : (
+      <View style={{ width: 32, height: 32 }}>
+        <Text style={{ color: "#fff", fontSize: 25, textAlign: "center" }}>
+          X
+        </Text>
+      </View>
+    );
   };
 
   return (
@@ -181,26 +151,27 @@ export default function MenuPrincipal() {
       }}
     >
       <View style={{ gap: 30 }}>
-        <View style={{}}>
-          <Text style={{ fontFamily: "Inter_400Regular" }}>
-            {`${totalOrders ?? "00"} pedidos en curso`}
-          </Text>
-        </View>
+        <Text style={{ fontFamily: "Inter_400Regular" }}>
+          {`${totalOrders ?? "00"} pedidos pendientes`}
+        </Text>
+
         {pedidos.map((pedido) => {
-          const cliente = clientes[pedido.clienteId];
+          const nombreCliente = clientes[pedido.clienteId];
 
           return (
             <View
+              key={pedido.id}
               style={{
                 overflow: "hidden",
                 width: "100%",
                 alignItems: "center",
                 justifyContent: "center",
-                borderBottomColor: "#E0E0E0",
-                paddingBottom: 10,
+                padding: 10,
+                borderRadius: 10,
                 borderBottomWidth: 1,
+                borderWidth: 1,
+                borderColor: "#E94B64",
               }}
-              key={pedido.id}
             >
               <View
                 style={{
@@ -228,17 +199,9 @@ export default function MenuPrincipal() {
                     >
                       #Categoría
                     </Text>
-                    <Text>
-                      {loadingClientes
-                        ? "Cargando cliente..."
-                        : `${cliente?.nombre ?? "Usuario"} ${
-                            cliente?.apellido ?? ""
-                          }`}
-                    </Text>
+                    <Text>{nombreCliente ?? "Cargando cliente..."}</Text>
                     <Text style={{ textTransform: "capitalize" }}>
-                      {loadingClientes
-                        ? "Cargando cliente..."
-                        : `${pedido?.metodoPago}`}
+                      {pedido?.metodoPago}
                     </Text>
                     <Text
                       style={{
@@ -249,6 +212,7 @@ export default function MenuPrincipal() {
                       ID: {pedido?.id ?? "404"}
                     </Text>
                   </View>
+
                   <View
                     style={{
                       flexDirection: "row",
@@ -263,6 +227,7 @@ export default function MenuPrincipal() {
                     >
                       ${pedido?.total}
                     </Text>
+
                     <TouchableOpacity
                       style={{
                         backgroundColor: "#E94B64",
@@ -273,12 +238,17 @@ export default function MenuPrincipal() {
                         borderRadius: 10,
                       }}
                       onPress={() => {
-                        setPedidoSeleccionado(pedido); // 👈 guarda el que se abrió
+                        setPedidoSeleccionado(pedido);
                         setModalVisible(true);
+
+                        if (!clientes[pedido.clienteId]) {
+                          fetchCliente(pedido.clienteId);
+                        }
                       }}
                     >
                       {handlePedidoIcon(pedido.estado)}
                     </TouchableOpacity>
+
                     <TouchableOpacity
                       style={{
                         width: 90,
@@ -310,6 +280,7 @@ export default function MenuPrincipal() {
           );
         })}
       </View>
+
       <Modal
         animationType="slide"
         transparent={true}
@@ -337,54 +308,77 @@ export default function MenuPrincipal() {
             <Text style={{ fontFamily: "Inter_700Bold", fontSize: 16 }}>
               Estado del pedido
             </Text>
-            <View style={{}}>
-              {pedidoSeleccionado ? (
-                <View style={{ gap: 10, alignItems: "center" }}>
-                  <Text
-                    style={{
-                      width: 200,
-                      textAlign: "center",
-                      fontFamily: "Inter_400Regular",
-                    }}
-                  >{`El estado del pedido de ${pedidoSeleccionado.clienteId} por $${pedidoSeleccionado.total} encuentra actualmente: ${pedidoSeleccionado.estado}`}</Text>
-                  <Text
-                    style={{
-                      fontFamily: "Inter_600SemiBold",
-                      textAlign: "center",
-                    }}
-                  >
-                    Seleccionar nuevo estado
-                  </Text>
-                  <View>
-                    {estadosPedidos.map((estado) => (
-                      <TouchableOpacity
-                        style={{}}
-                        key={`${estado}-${pedidoSeleccionado.id}`}
-                        onPress={() => {
-                          setPedidoActualizado([pedidoSeleccionado.id, estado]);
-                          console.log([pedidoSeleccionado.id, estado]);
+
+            {pedidoSeleccionado ? (
+              <View style={{ gap: 10, alignItems: "center", width: "100%" }}>
+                <Text
+                  style={{
+                    width: 200,
+                    textAlign: "center",
+                    fontFamily: "Inter_400Regular",
+                  }}
+                >
+                  {`Pedido de ${
+                    clientes[pedidoSeleccionado.clienteId] ?? "Cargando..."
+                  } 
+por $${pedidoSeleccionado.total}, actualmente: ${pedidoSeleccionado.estado}`}
+                </Text>
+
+                <Text
+                  style={{
+                    fontFamily: "Inter_600SemiBold",
+                    textAlign: "center",
+                    marginTop: 10,
+                  }}
+                >
+                  Seleccionar nuevo estado:
+                </Text>
+
+                <View style={{ gap: 10 }}>
+                  {estadosPedidos.map((estado) => (
+                    <TouchableOpacity
+                      key={`${estado}-${pedidoSeleccionado.id}`}
+                      onPress={() => {
+                        setPedidoActualizado([pedidoSeleccionado.id, estado]);
+                        console.log("Nuevo estado:", [
+                          pedidoSeleccionado.id,
+                          estado,
+                        ]);
+                      }}
+                      style={{
+                        paddingVertical: 8,
+                        paddingHorizontal: 12,
+                        backgroundColor:
+                          pedidoActualizado[1] === estado
+                            ? "#E94B64"
+                            : "#F7F7F7",
+                        borderRadius: 8,
+                      }}
+                    >
+                      <Text
+                        style={{
+                          color:
+                            pedidoActualizado[1] === estado ? "#fff" : "#333",
+                          fontFamily: "Inter_400Regular",
+                          textTransform: "capitalize",
                         }}
                       >
-                        <Text style={{ textTransform: "capitalize" }}>
-                          {estado}
-                        </Text>
-                        {/* <Image
-                      source={require("../../assets/images/order-icon.svg")}
-                      style={{
-                        height: 24,
-                        width: 18,
-                      }}
-                    /> */}
-                      </TouchableOpacity>
-                    ))}
-                  </View>
+                        {estado}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
                 </View>
-              ) : (
-                <Text>No hay pedido seleccionado</Text>
-              )}
-            </View>
+              </View>
+            ) : (
+              <Text style={{ fontFamily: "Inter_400Regular" }}>
+                No hay pedido seleccionado
+              </Text>
+            )}
+
             <TouchableOpacity onPress={() => setModalVisible(false)}>
-              <Text style={{ color: "#D61355", fontSize: 14 }}>Cerrar</Text>
+              <Text style={{ color: "#D61355", fontSize: 14, marginTop: 10 }}>
+                Cerrar
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
