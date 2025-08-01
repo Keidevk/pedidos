@@ -6,713 +6,234 @@ import {
   useFonts,
 } from "@expo-google-fonts/inter";
 import { Image } from "expo-image";
-import {
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { router } from "expo-router";
+import { useEffect, useState } from "react";
+import { FlatList, Text, TouchableOpacity, View } from "react-native";
+import { getItem } from "../utils";
 
-export default function MenuPrincipal() {
+type Pedido = {
+  id: string;
+  fecha: string;
+  estado: string;
+  total: number;
+  metodoPago: string;
+  cliente: {
+    user: {
+      nombre: string;
+      apellido: string;
+    };
+  };
+  repartidor?: {
+    user?: {
+      nombre: string;
+      apellido: string;
+    };
+  };
+  detalles: {
+    cantidad: number;
+    producto: {
+      nombre: string;
+    };
+  }[];
+};
+
+export default function ShopOrders() {
   useFonts({
     Inter_600SemiBold,
     Inter_300Light,
     Inter_400Regular,
     Inter_700Bold,
   });
+  const [pedidos, setPedidos] = useState<Pedido[]>([]);
+  const [shopId, setShopId] = useState("0");
+
+  useEffect(() => {
+    getItem("@userId", setShopId);
+  }, []);
+
+  useEffect(() => {
+    const fetchPedidos = async () => {
+      try {
+        const res = await fetch(
+          `${process.env.EXPO_PUBLIC_HOST}/api/shop/orders/${shopId}`
+        );
+        const json = await res.json();
+        if (json.code === 200 && Array.isArray(json.data)) {
+          setPedidos(json.data);
+        } else {
+          console.warn("Respuesta inesperada:", json);
+        }
+      } catch (err) {
+        console.error("❌ Error al obtener pedidos de tienda:", err);
+      }
+    };
+
+    if (shopId !== "0" && shopId !== undefined) {
+      fetchPedidos();
+    }
+  }, [shopId]);
+
+  console.log(pedidos);
 
   return (
-    <ScrollView
-      contentContainerStyle={{
-        display: "flex",
-        backgroundColor: "#F7F8F9",
-        padding: 20,
-        gap: 20,
-      }}
-    >
-      <View style={{}}>
-        <Text style={{ fontFamily: "Inter_400Regular" }}>
-          05 solicitudes en curso
+    <View style={{}}>
+      <TouchableOpacity
+        style={{
+          flexDirection: "row",
+          gap: 10,
+          alignItems: "center",
+          padding: 20,
+          paddingBottom: 0,
+        }}
+        onPress={() => router.navigate("/(seller)/sellerMain")}
+      >
+        <View
+          style={{
+            backgroundColor: "#ECF0F4",
+            paddingRight: 15,
+            paddingLeft: 15,
+            paddingTop: 12,
+            paddingBottom: 12,
+            borderRadius: 50,
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <Image
+            source={require("../../assets/images/seller-chevron-back-icon.svg")}
+            style={{
+              height: 14,
+              width: 10,
+              tintColor: "#E94B64",
+            }}
+          />
+        </View>
+        <Text
+          style={{
+            fontFamily: "Inter_600SemiBold",
+            fontSize: 17,
+            textAlign: "center",
+          }}
+        >
+          Entregas en curso
         </Text>
-      </View>
-      <View style={{ overflow: "hidden", maxHeight: 300 }}>
-        <View
-          style={{
-            display: "flex",
-            flexDirection: "row",
-            gap: 10,
-            borderColor: "#000",
-            borderWidth: 1,
-            padding: 10,
-            borderRadius: 15,
-            justifyContent: "space-between",
-          }}
-        >
+      </TouchableOpacity>
+      <FlatList
+        data={pedidos}
+        keyExtractor={(item) => item.id}
+        contentContainerStyle={{ padding: 20 }}
+        renderItem={({ item }) => (
           <View
             style={{
-              alignItems: "center",
-              borderRightWidth: 1,
-              borderRightColor: "#000",
-              padding: 5,
+              marginBottom: 16,
+              padding: 16,
+              borderRadius: 10,
+              backgroundColor: "#FAFAFA",
+              borderColor: "#E94B64",
+              borderWidth: 1,
+              gap: 2,
             }}
           >
-            <Text
-              style={{
-                fontFamily: "Inter_700Bold",
-                fontSize: 16,
-                color: "#D61355",
-              }}
-            >
-              01
+            <Text style={{ fontWeight: "bold", fontSize: 16 }}>
+              Pedido #{item.id.slice(0, 8)}
             </Text>
-            <Image
-              source={require("../../assets/images/delivery-requests-icon.png")}
-              style={{
-                height: 62,
-                width: 58,
-              }}
-            />
-          </View>
-          <View style={{ justifyContent: "space-between" }}>
-            <View style={{ gap: 5 }}>
-              <Text
-                style={{ fontFamily: "Inter_400Regular", color: "#D61355" }}
-              >
-                Orden: #11203
-              </Text>
-              <Text style={{ fontFamily: "Inter_600SemiBold" }}>
-                Cliente: María Pérez
-              </Text>
-              <View
-                style={{
-                  flexDirection: "row",
-                  justifyContent: "space-between",
-                }}
-              >
-                <View
-                  style={{
-                    flexDirection: "row",
-                    gap: 1,
-                    alignItems: "center",
-                  }}
-                >
-                  <Image
-                    source={require("../../assets/images/location-requests-icon.svg")}
-                    style={{
-                      height: 19,
-                      width: 19,
-                    }}
-                  />
-                  <Text
-                    style={{
-                      fontFamily: "Inter_400Regular",
-                      color: "#9C9BA6",
-                    }}
-                  >
-                    10 min
-                  </Text>
-                </View>
-                <Text style={{}}>-</Text>
-                <View
-                  style={{
-                    flexDirection: "row",
-                    gap: 1,
-                    alignItems: "center",
-                  }}
-                >
-                  <Image
-                    source={require("../../assets/images/timer-requests-icon.svg")}
-                    style={{
-                      height: 19,
-                      width: 19,
-                    }}
-                  />
-                  <Text
-                    style={{
-                      fontFamily: "Inter_400Regular",
-                      color: "#9C9BA6",
-                    }}
-                  >
-                    10 min
-                  </Text>
-                </View>
-              </View>
-            </View>
-            <TouchableOpacity
-              style={{
-                width: "100%",
-                padding: 5,
-                borderRadius: 10,
-                alignItems: "center",
-                justifyContent: "center",
-                backgroundColor: "#FA0E0E",
-              }}
-            >
-              <Text
-                style={{
-                  fontFamily: "Inter_400Regular",
-                  color: "#fff",
-                  fontSize: 13,
-                }}
-              >
-                Pendiente
-              </Text>
-            </TouchableOpacity>
-          </View>
-          <View style={{}}>
-            <Image
-              source={require("../../assets/images/points-requests-icon.svg")}
-              style={{
-                height: 24,
-                width: 18,
-              }}
-            />
-          </View>
-        </View>
-      </View>
-      <View style={{ overflow: "hidden", maxHeight: 300 }}>
-        <View
-          style={{
-            display: "flex",
-            flexDirection: "row",
-            gap: 10,
-            borderColor: "#000",
-            borderWidth: 1,
-            padding: 10,
-            justifyContent: "space-between",
 
-            borderRadius: 15,
-          }}
-        >
-          <View
-            style={{
-              alignItems: "center",
-              borderRightWidth: 1,
-              borderRightColor: "#000",
-              padding: 5,
-              justifyContent: "space-between",
-            }}
-          >
-            <Text
+            <Text>
+              Cliente: {item.cliente?.user?.nombre.trim()}{" "}
+              {item.cliente?.user?.apellido.trim()}
+            </Text>
+            <Text>
+              Repartidor:{" "}
+              {item.repartidor?.user
+                ? `${item.repartidor.user.nombre.trim()} ${item.repartidor.user.apellido.trim()}`
+                : "Sin asignar"}
+            </Text>
+            <Text style={{ marginTop: 8, fontWeight: "bold" }}>Detalles:</Text>
+            {item.detalles.map((d, idx) => (
+              <Text key={idx}>
+                - {d.cantidad} × {d.producto?.nombre}
+              </Text>
+            ))}
+            <View
               style={{
-                fontFamily: "Inter_700Bold",
-                fontSize: 16,
-                color: "#D61355",
+                padding: 15,
+                marginBottom: 12,
+                backgroundColor: "#FE9BABCC",
+                borderRadius: 8,
+                shadowColor: "#000",
+                shadowOpacity: 0.05,
+                shadowRadius: 2,
+                borderWidth: 1,
+                borderColor: "#D61355",
+                marginTop: 10,
               }}
             >
-              02
-            </Text>
-            <Image
-              source={require("../../assets/images/delivery-requests-icon.png")}
-              style={{
-                height: 62,
-                width: 58,
-              }}
-            />
-          </View>
-          <View style={{ justifyContent: "space-between" }}>
-            <View style={{ gap: 5 }}>
-              <Text
-                style={{ fontFamily: "Inter_400Regular", color: "#D61355" }}
-              >
-                Orden: #11203
-              </Text>
-              <Text style={{ fontFamily: "Inter_600SemiBold" }}>
-                Cliente: María Pérez
-              </Text>
               <View
                 style={{
                   flexDirection: "row",
+                  width: "100%",
                   justifyContent: "space-between",
                 }}
               >
-                <View
+                <Text style={{ fontFamily: "Inter_600SemiBold", fontSize: 14 }}>
+                  Estado:
+                </Text>
+                <Text
                   style={{
-                    flexDirection: "row",
-                    gap: 1,
-                    alignItems: "center",
+                    textTransform: "capitalize",
+                    fontFamily: "Inter_400Regular",
                   }}
                 >
-                  <Image
-                    source={require("../../assets/images/location-requests-icon.svg")}
-                    style={{
-                      height: 19,
-                      width: 19,
-                    }}
-                  />
-                  <Text
-                    style={{
-                      fontFamily: "Inter_400Regular",
-                      color: "#9C9BA6",
-                    }}
-                  >
-                    10 min
-                  </Text>
-                </View>
-                <Text style={{}}>-</Text>
-                <View
-                  style={{
-                    flexDirection: "row",
-                    gap: 1,
-                    alignItems: "center",
-                  }}
-                >
-                  <Image
-                    source={require("../../assets/images/timer-requests-icon.svg")}
-                    style={{
-                      height: 19,
-                      width: 19,
-                    }}
-                  />
-                  <Text
-                    style={{
-                      fontFamily: "Inter_400Regular",
-                      color: "#9C9BA6",
-                    }}
-                  >
-                    10 min
-                  </Text>
-                </View>
+                  {item.estado}
+                </Text>
               </View>
-            </View>
-            <View
-              style={{
-                gap: 5,
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              <Text
-                style={{
-                  fontFamily: "Inter_600SemiBold",
-                  borderBottomColor: "#000",
-                  borderBottomWidth: 1,
-                  fontSize: 13,
-                }}
-              >
-                Repartidor Asignado
-              </Text>
-              <Text
-                style={{
-                  fontSize: 13,
-                  fontFamily: "Inter_600SemiBold",
-                }}
-              >
-                Jean Luis Gómez
-              </Text>
-            </View>
-          </View>
-          <View style={{ justifyContent: "space-between" }}>
-            <Image
-              source={require("../../assets/images/rectangulo-img.svg")}
-              style={{
-                height: "50%",
-                width: "100%",
-                borderRadius: 20,
-              }}
-            />
-            <TouchableOpacity
-              style={{
-                padding: 10,
-                borderRadius: 10,
-                alignItems: "center",
-                justifyContent: "center",
-                backgroundColor: "#FFDCE1",
-              }}
-            >
-              <Image
-                source={require("../../assets/images/chat-requests-icon.svg")}
-                style={{
-                  height: 19,
-                  width: 19,
-                }}
-              />
-            </TouchableOpacity>
-          </View>
-        </View>
-      </View>
-      <View style={{ overflow: "hidden", maxHeight: 300 }}>
-        <View
-          style={{
-            display: "flex",
-            flexDirection: "row",
-            gap: 10,
-            borderColor: "#000",
-            borderWidth: 1,
-            padding: 10,
-            borderRadius: 15,
-            justifyContent: "space-between",
-          }}
-        >
-          <View
-            style={{
-              alignItems: "center",
-              borderRightWidth: 1,
-              borderRightColor: "#000",
-              padding: 5,
-            }}
-          >
-            <Text
-              style={{
-                fontFamily: "Inter_700Bold",
-                fontSize: 16,
-                color: "#D61355",
-              }}
-            >
-              03
-            </Text>
-            <Image
-              source={require("../../assets/images/delivery-requests-icon.png")}
-              style={{
-                height: 62,
-                width: 58,
-              }}
-            />
-          </View>
-          <View style={{ justifyContent: "space-between" }}>
-            <View style={{ gap: 5 }}>
-              <Text
-                style={{ fontFamily: "Inter_400Regular", color: "#D61355" }}
-              >
-                Orden: #11203
-              </Text>
-              <Text style={{ fontFamily: "Inter_600SemiBold" }}>
-                Cliente: María Pérez
-              </Text>
               <View
                 style={{
                   flexDirection: "row",
+                  width: "100%",
                   justifyContent: "space-between",
                 }}
               >
-                <View
+                <Text style={{ fontFamily: "Inter_600SemiBold", fontSize: 14 }}>
+                  Total:
+                </Text>
+                <Text
                   style={{
-                    flexDirection: "row",
-                    gap: 1,
-                    alignItems: "center",
+                    textTransform: "capitalize",
+                    fontFamily: "Inter_400Regular",
                   }}
                 >
-                  <Image
-                    source={require("../../assets/images/location-requests-icon.svg")}
-                    style={{
-                      height: 19,
-                      width: 19,
-                    }}
-                  />
-                  <Text
-                    style={{
-                      fontFamily: "Inter_400Regular",
-                      color: "#9C9BA6",
-                    }}
-                  >
-                    10 min
-                  </Text>
-                </View>
-                <Text style={{}}>-</Text>
-                <View
-                  style={{
-                    flexDirection: "row",
-                    gap: 1,
-                    alignItems: "center",
-                  }}
-                >
-                  <Image
-                    source={require("../../assets/images/timer-requests-icon.svg")}
-                    style={{
-                      height: 19,
-                      width: 19,
-                    }}
-                  />
-                  <Text
-                    style={{
-                      fontFamily: "Inter_400Regular",
-                      color: "#9C9BA6",
-                    }}
-                  >
-                    10 min
-                  </Text>
-                </View>
+                  ${item.total.toFixed(2)}
+                </Text>
               </View>
-            </View>
-            <View
-              style={{
-                gap: 5,
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              <Text
-                style={{
-                  fontFamily: "Inter_600SemiBold",
-                  borderBottomColor: "#000",
-                  borderBottomWidth: 1,
-                  fontSize: 13,
-                }}
-              >
-                Repartidor Asignado
-              </Text>
-              <Text
-                style={{
-                  fontSize: 13,
-                  fontFamily: "Inter_600SemiBold",
-                }}
-              >
-                Jean Luis Gómez
-              </Text>
-            </View>
-          </View>
-          <View style={{ justifyContent: "space-between" }}>
-            <Image
-              source={require("../../assets/images/rectangulo-img.svg")}
-              style={{
-                height: "50%",
-                width: "100%",
-                borderRadius: 20,
-              }}
-            />
-            <TouchableOpacity
-              style={{
-                padding: 10,
-                borderRadius: 10,
-                alignItems: "center",
-                justifyContent: "center",
-                backgroundColor: "#FFDCE1",
-              }}
-            >
-              <Image
-                source={require("../../assets/images/chat-requests-icon.svg")}
-                style={{
-                  height: 19,
-                  width: 19,
-                }}
-              />
-            </TouchableOpacity>
-          </View>
-        </View>
-      </View>
-      <View style={{ overflow: "hidden", maxHeight: 300 }}>
-        <View
-          style={{
-            display: "flex",
-            flexDirection: "row",
-            gap: 10,
-            borderColor: "#000",
-            borderWidth: 1,
-            padding: 10,
-            borderRadius: 15,
-            justifyContent: "space-between",
-          }}
-        >
-          <View
-            style={{
-              alignItems: "center",
-              borderRightWidth: 1,
-              borderRightColor: "#000",
-              padding: 5,
-            }}
-          >
-            <Text
-              style={{
-                fontFamily: "Inter_700Bold",
-                fontSize: 16,
-                color: "#D61355",
-              }}
-            >
-              04
-            </Text>
-            <Image
-              source={require("../../assets/images/delivery-requests-icon.png")}
-              style={{
-                height: 62,
-                width: 58,
-              }}
-            />
-          </View>
-          <View style={{ justifyContent: "space-between" }}>
-            <View style={{ gap: 5 }}>
-              <Text
-                style={{ fontFamily: "Inter_400Regular", color: "#D61355" }}
-              >
-                Orden: #11203
-              </Text>
-              <Text style={{ fontFamily: "Inter_600SemiBold" }}>
-                Cliente: María Pérez
-              </Text>
               <View
                 style={{
                   flexDirection: "row",
+                  width: "100%",
                   justifyContent: "space-between",
                 }}
               >
-                <View
+                <Text style={{ fontFamily: "Inter_600SemiBold", fontSize: 14 }}>
+                  Método de pago:
+                </Text>
+                <Text
                   style={{
-                    flexDirection: "row",
-                    gap: 1,
-                    alignItems: "center",
+                    textTransform: "capitalize",
+                    fontFamily: "Inter_400Regular",
                   }}
                 >
-                  <Image
-                    source={require("../../assets/images/location-requests-icon.svg")}
-                    style={{
-                      height: 19,
-                      width: 19,
-                    }}
-                  />
-                  <Text
-                    style={{
-                      fontFamily: "Inter_400Regular",
-                      color: "#9C9BA6",
-                    }}
-                  >
-                    10 min
-                  </Text>
-                </View>
-                <Text style={{}}>-</Text>
-                <View
-                  style={{
-                    flexDirection: "row",
-                    gap: 1,
-                    alignItems: "center",
-                  }}
-                >
-                  <Image
-                    source={require("../../assets/images/timer-requests-icon.svg")}
-                    style={{
-                      height: 19,
-                      width: 19,
-                    }}
-                  />
-                  <Text
-                    style={{
-                      fontFamily: "Inter_400Regular",
-                      color: "#9C9BA6",
-                    }}
-                  >
-                    10 min
-                  </Text>
-                </View>
+                  {item.metodoPago}
+                </Text>
               </View>
             </View>
-            <View
-              style={{
-                gap: 5,
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              <Text
-                style={{
-                  fontFamily: "Inter_600SemiBold",
-                  borderBottomColor: "#000",
-                  borderBottomWidth: 1,
-                  fontSize: 13,
-                }}
-              >
-                Repartidor Asignado
-              </Text>
-              <Text
-                style={{
-                  fontSize: 13,
-                  fontFamily: "Inter_600SemiBold",
-                }}
-              >
-                Jean Luis Gómez
-              </Text>
-            </View>
           </View>
-          <View style={{ justifyContent: "space-between" }}>
-            <Image
-              source={require("../../assets/images/rectangulo-img.svg")}
-              style={{
-                height: "50%",
-                width: "100%",
-                borderRadius: 20,
-              }}
-            />
-            <TouchableOpacity
-              style={{
-                padding: 10,
-                borderRadius: 10,
-                alignItems: "center",
-                justifyContent: "center",
-                backgroundColor: "#FFDCE1",
-              }}
-            >
-              <Image
-                source={require("../../assets/images/chat-requests-icon.svg")}
-                style={{
-                  height: 19,
-                  width: 19,
-                }}
-              />
-            </TouchableOpacity>
-          </View>
-        </View>
-      </View>
-    </ScrollView>
+        )}
+        ListEmptyComponent={
+          <Text style={{ textAlign: "center", marginTop: 40 }}>
+            No hay pedidos disponibles.
+          </Text>
+        }
+      />
+    </View>
   );
 }
-const style = StyleSheet.create({
-  subtitle: {
-    flexDirection: "row",
-    marginLeft: 15,
-    marginTop: 10,
-    marginBottom: 5,
-  },
-  chevron: {
-    height: 16,
-    width: 16,
-    marginLeft: 5,
-    margin: "auto",
-  },
-  button_etiqueta: {
-    borderColor: "#E6E6E6",
-    borderWidth: 1,
-    marginVertical: 10,
-    marginRight: 5,
-    padding: 5,
-    borderRadius: 10,
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  image_etiqueta: {
-    height: 16,
-    width: 16,
-    marginRight: 5,
-  },
-  text_etiqueta: {
-    fontFamily: "Inter_600SemiBold",
-  },
-  container_input: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginLeft: "4%",
-    paddingVertical: 3,
-    width: "90%",
-    backgroundColor: "#ddd",
-    borderRadius: 10,
-  },
-  image_input: {
-    height: 32,
-    width: 32,
-    marginLeft: 10,
-  },
-  text_input: {
-    marginLeft: 10,
-    fontSize: 16,
-    width: "75%",
-  },
-  promo: {
-    height: 160,
-    backgroundColor: "#444",
-  },
-  shops: {
-    height: 100,
-    marginLeft: 5,
-    borderRadius: 15,
-    backgroundColor: "#E94B64",
-    flexDirection: "row",
-    alignItems: "center",
-  },
-});
