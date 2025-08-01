@@ -5,16 +5,8 @@ export default function SellerLayout() {
   return (
     <Tabs
       screenOptions={{
-        tabBarLabelPosition: "below-icon",
         headerShown: false,
-        tabBarActiveTintColor: "gray",
-        tabBarStyle: {
-          alignItems: "center",
-          justifyContent: "center",
-          minHeight: 55,
-          transitionDuration: "0ms",
-        },
-        headerTitleStyle: {},
+        tabBarActiveTintColor: "#E94B64",
       }}
     >
       <Tabs.Screen
@@ -24,7 +16,7 @@ export default function SellerLayout() {
           tabBarIconStyle: {},
           title: "Inicio",
           tabBarIcon: ({ focused }) => (
-            <Ionicons name="home-outline" size={24} color="#333" />
+            <Ionicons name="home-outline" size={24} color="#AFAFAF" />
           ),
         }}
       />
@@ -41,6 +33,7 @@ export default function SellerLayout() {
               style={{
                 height: 24,
                 width: 18,
+                tintColor: "#AFAFAF",
               }}
             />
           ),
@@ -60,6 +53,7 @@ export default function SellerLayout() {
               style={{
                 height: 29,
                 width: 29,
+                tintColor: "#AFAFAF",
               }}
             />
           ),
@@ -79,6 +73,7 @@ export default function SellerLayout() {
               style={{
                 height: 29,
                 width: 29,
+                tintColor: "#AFAFAF",
               }}
             />
           ),
@@ -97,6 +92,7 @@ export default function SellerLayout() {
               style={{
                 height: 24,
                 width: 18,
+                tintColor: "#AFAFAF",
               }}
             />
           ),
@@ -113,6 +109,7 @@ export default function SellerLayout() {
               style={{
                 height: 21,
                 width: 21,
+                tintColor: "#AFAFAF",
               }}
             />
           ),
@@ -129,6 +126,7 @@ export default function SellerLayout() {
               style={{
                 height: 30,
                 width: 27,
+                tintColor: "#AFAFAF",
               }}
             />
           ),
@@ -145,6 +143,7 @@ export default function SellerLayout() {
               style={{
                 height: 25,
                 width: 24,
+                tintColor: "#AFAFAF",
               }}
             />
           ),
@@ -160,6 +159,7 @@ export default function SellerLayout() {
               style={{
                 height: 25,
                 width: 24,
+                tintColor: "#AFAFAF",
               }}
             />
           ),
@@ -176,6 +176,7 @@ export default function SellerLayout() {
               style={{
                 height: 25,
                 width: 24,
+                tintColor: "#AFAFAF",
               }}
             />
           ),
