@@ -9,33 +9,49 @@ export default function MapsRouter(){
 
 const [location, setLocation] = useState<Location.LocationObject>();
 const [isLocationActive,setIsLocationActive] = useState(false)
-const destination = { latitude: 10.1964308, longitude: -71.3263331 };
+const destination = { latitude: 10.22634799864273, longitude: -71.34536347394993 };
+
 const [ApiKey,setApiKey] = useState<string|null>(null)
 useEffect(() => {
-    async function getCurrentLocation() {
-      
-      let { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== 'granted') {
-        Alert.alert("Permiso denegado",'El permiso para la ubicacion fue denegado');
-        return;
-      }
+  let locationSubscription:Location.LocationSubscription | undefined;
+;
 
-      let location = await Location.getCurrentPositionAsync({});
-      setLocation(location);
-      if(location.coords){
-        setIsLocationActive(true)
-      }
-      console.log(location)
+  async function startWatchingLocation() {
+    const { status } = await Location.requestForegroundPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert("Permiso denegado", "El permiso para la ubicación fue denegado");
+      return;
     }
 
-    async function getApiKey(){
-        const response = await fetch(`${process.env.EXPO_PUBLIC_HOST}/api/keys/googleapi`)
-        const data = await response.json()
-        setApiKey(data.message) 
+    locationSubscription = await Location.watchPositionAsync(
+      {
+        accuracy: Location.Accuracy.High,
+        timeInterval: 3000, // cada 3 segundos
+        distanceInterval: 5, // o cada 5 metros
+      },
+      (location) => {
+        setLocation(location);
+        setIsLocationActive(true);
+        console.log("Ubicación actualizada:", location.coords);
+      }
+    );
+  }
+
+  async function getApiKey() {
+    const response = await fetch(`${process.env.EXPO_PUBLIC_HOST}/api/keys/googleapi`);
+    const data = await response.json();
+    setApiKey(data.message);
+  }
+
+  getApiKey();
+  startWatchingLocation();
+
+  return () => {
+    if (locationSubscription) {
+      locationSubscription.remove();
     }
-    getApiKey()
-    getCurrentLocation();
-  }, []);
+  };
+}, []);
 
 return(<View>
     { isLocationActive && location && ApiKey ? 
@@ -44,8 +60,8 @@ return(<View>
       initialRegion={{
         latitude: location.coords.latitude,
         longitude: location.coords.longitude,
-        latitudeDelta: 0.05,
-        longitudeDelta: 0.05,
+        latitudeDelta: 0.0002,
+          longitudeDelta: 0.0002 / Math.cos(location.coords.latitude) * (Math.PI / 180),
       }}
     >
       {/* <Marker coordinate={{
