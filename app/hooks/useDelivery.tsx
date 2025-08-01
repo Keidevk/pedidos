@@ -51,36 +51,31 @@ export const useActiveDelivery = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    let isMounted = true;
+  const fetchActiveDelivery = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch(
+        `${process.env.EXPO_PUBLIC_HOST}/api/delivery/actives`
+      );
+      const json: ActiveDeliveryResponse = await res.json();
 
-    const fetchActiveDelivery = async () => {
-      try {
-        const res = await fetch(
-          `${process.env.EXPO_PUBLIC_HOST}/api/delivery/actives`
-        );
-        const json: ActiveDeliveryResponse = await res.json();
-
-        if (!isMounted) return;
-
-        if (json.code === 200 && json.deliverys) {
-          setDeliverys(json.deliverys);
-        } else {
-          setError("No se encontraron repartidores disponibles");
-        }
-      } catch (err) {
-        if (isMounted) setError("Error de red al buscar repartidores");
-      } finally {
-        if (isMounted) setLoading(false);
+      if (json.code === 200 && json.deliverys) {
+        setDeliverys(json.deliverys);
+      } else {
+        setError("No se encontraron repartidores disponibles");
+        setDeliverys([]); // Limpia si no hay data
       }
-    };
+    } catch (err) {
+      setError("Error de red al buscar repartidores");
+      setDeliverys([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchActiveDelivery();
-
-    return () => {
-      isMounted = false;
-    };
   }, []);
 
-  return { deliverys, loading, error };
+  return { deliverys, loading, error, refetch: fetchActiveDelivery };
 };
