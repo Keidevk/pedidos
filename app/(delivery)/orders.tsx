@@ -5,6 +5,7 @@ import {
   Inter_700Bold,
   useFonts,
 } from "@expo-google-fonts/inter";
+import { router } from "expo-router";
 import { useEffect, useState } from "react";
 import { FlatList, Text, TouchableOpacity, View } from "react-native";
 import { useClientes } from "../hooks/useClientes";
@@ -199,6 +200,12 @@ export default function OrdersByDelivery() {
                 Fecha: {new Date(item.fecha).toLocaleString()}
               </Text>
               <TouchableOpacity
+                onPress={()=>{
+                  router.push({
+                  pathname:'/(delivery)/maps',
+                  params:{orderId:item.id}
+                  })
+                }}
                 style={{
                   backgroundColor: "#E94B64",
                   width: 100,
