@@ -37,6 +37,20 @@ type Pedido = {
   total: number;
   metodoPago: string;
   clienteId: string;
+  tiendaId: string;
+  repartidorId: string | null;
+  detalles: {
+    id: string;
+    cantidad: number;
+    precioUnitario: number;
+    producto: {
+      id: string;
+      nombre: string;
+      descripcion: string;
+      precio: number;
+      imagen_url: string;
+    };
+  }[];
 };
 
 const agruparEstado = (estado: string): "activa" | "listo" | "cancelado" => {
@@ -76,10 +90,11 @@ export default function MenuPrincipal() {
       setShopId(id);
       fetch(`${process.env.EXPO_PUBLIC_HOST}/api/stats/orders/${id}`)
         .then((res) => res.json())
-        .then((data: Pedido[]) => {
-          console.log("Pedidos:", data);
-          setPedidos(data);
+        .then((data) => {
+          console.log("Pedidos actualizados:", data);
+          setPedidos(data); // ya trae estructura completa
         })
+
         .catch((error) => {
           console.error("Error al traer pedidos:", error);
         });
@@ -233,287 +248,395 @@ export default function MenuPrincipal() {
 
       {/* Modal */}
       <Modal visible={pedidoActivo !== null} transparent animationType="fade">
-        <ScrollView
-          contentContainerStyle={{
-            flexGrow: 1,
-            padding: 20,
-            justifyContent: "center",
-            alignItems: "center",
-          }}
-          style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.4)" }}
-          showsVerticalScrollIndicator
-        >
-          <View
-            style={{
-              borderRadius: 10,
-              gap: 20,
-              width: "100%",
-            }}
-          >
-            <View
-              style={{
-                flex: 1,
+        {pedidoActivo &&
+          Array.isArray(pedidoActivo.detalles) &&
+          pedidoActivo.detalles.length > 0 && (
+            <ScrollView
+              contentContainerStyle={{
                 flexGrow: 1,
+                padding: 20,
                 justifyContent: "center",
                 alignItems: "center",
-                padding: 20,
               }}
+              style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.4)" }}
+              showsVerticalScrollIndicator
             >
               <View
                 style={{
-                  backgroundColor: "#fff",
                   borderRadius: 10,
-                  padding: 20,
                   gap: 20,
                   width: "100%",
                 }}
               >
                 <View
                   style={{
-                    flexDirection: "row",
-                    justifyContent: "space-between",
+                    flex: 1,
+                    flexGrow: 1,
+                    justifyContent: "center",
                     alignItems: "center",
-                    borderBottomWidth: 1,
-                    borderBottomColor: "#4A55684D",
+                    padding: 20,
                   }}
                 >
-                  <Text
-                    style={{
-                      fontSize: 14,
-                      fontFamily: "Inter_700Bold",
-                      marginBottom: 10,
-                      textAlign: "center",
-                      maxWidth: 100,
-                    }}
-                  >
-                    Orden #{pedidoActivo?.id.slice(0, 8)}
-                  </Text>
-
-                  <Text
-                    style={{
-                      fontSize: 12,
-                      backgroundColor: "#FFDCE1",
-                      padding: 5,
-                      borderRadius: 30,
-                      fontFamily: "Inter_300Light",
-                      marginBottom: 10,
-                      textAlign: "center",
-                      maxWidth: 140,
-                    }}
-                  >
-                    {new Date(pedidoActivo?.fecha || "").toLocaleString()}
-                  </Text>
-                </View>
-                <View style={{ gap: 20 }}>
                   <View
                     style={{
-                      flexDirection: "row",
-                      width: "100%",
-                      alignItems: "center",
-                      gap: 10,
-                    }}
-                  >
-                    <Image
-                      source={require("../../assets/images/sellerOrderPage-user-icon.svg")}
-                      style={{ height: 26, width: 26 }}
-                      tintColor={"##EB6278"}
-                    />
-                    {/* <Text style={{ maxWidth: 100 }}>{pedidoActivo?.clienteId}</Text> */}
-                    <Text
-                      style={{ maxWidth: 100, fontFamily: "Inter_700Bold" }}
-                    >
-                      {clientes[pedidoActivo?.clienteId || ""] ??
-                        "Cargando nombre..."}
-                    </Text>
-                    <TouchableOpacity style={{}}>
-                      <View
-                        style={{
-                          alignItems: "center",
-                          justifyContent: "center",
-                          backgroundColor: "#FFDCE1",
-                          padding: 5,
-                          borderRadius: 30,
-                          width: 30,
-                          height: 30,
-                        }}
-                      >
-                        <Image
-                          source={require("../../assets/images/sellerOrderPage-phone-icon.svg")}
-                          style={{ height: 17, width: 16 }}
-                          tintColor={"##EB6278"}
-                        />
-                      </View>
-                    </TouchableOpacity>
-                    <TouchableOpacity style={{}}>
-                      <View
-                        style={{
-                          alignItems: "center",
-                          justifyContent: "center",
-                          backgroundColor: "#FFDCE1",
-                          padding: 5,
-                          borderRadius: 30,
-                          width: 30,
-                          height: 30,
-                        }}
-                      >
-                        <Image
-                          source={require("../../assets/images/sellerOrderPage-message-icon.svg")}
-                          style={{ height: 22, width: 24 }}
-                          tintColor={"##EB6278"}
-                        />
-                      </View>
-                    </TouchableOpacity>
-                  </View>
-                  <View
-                    style={{
-                      flexDirection: "row",
-                      gap: 5,
-                      paddingBottom: 20,
-                      borderBottomWidth: 1,
-                      borderBottomColor: "#4A55684D",
-                    }}
-                  >
-                    <Text style={{}}>Estado actual del pedido:</Text>
-                    <Text
-                      style={{
-                        textTransform: "capitalize",
-                        fontFamily: "Inter_600SemiBold",
-                      }}
-                    >
-                      {pedidoActivo?.estado}
-                    </Text>
-                  </View>
-                  <View
-                    style={{
-                      backgroundColor: "#FF59631A",
-                      borderWidth: 1,
-                      borderColor: "#D61355",
+                      backgroundColor: "#fff",
                       borderRadius: 10,
-                      padding: 10,
+                      padding: 20,
+                      gap: 20,
+                      width: "100%",
                     }}
                   >
                     <View
                       style={{
                         flexDirection: "row",
-                        gap: 5,
                         justifyContent: "space-between",
+                        alignItems: "center",
+                        borderBottomWidth: 1,
+                        borderBottomColor: "#4A55684D",
                       }}
                     >
-                      <Text style={{}}>Total:</Text>
                       <Text
                         style={{
-                          textTransform: "capitalize",
-                          fontFamily: "Inter_600SemiBold",
+                          fontSize: 14,
+                          fontFamily: "Inter_700Bold",
+                          marginBottom: 10,
+                          textAlign: "center",
+                          maxWidth: 100,
                         }}
                       >
-                        ${pedidoActivo?.total}
+                        Orden #{pedidoActivo?.id.slice(0, 8)}
                       </Text>
-                    </View>
-                    <View
-                      style={{
-                        flexDirection: "row",
-                        gap: 5,
-                        justifyContent: "space-between",
-                      }}
-                    >
-                      <Text style={{}}>Método de pago:</Text>
+
                       <Text
                         style={{
-                          textTransform: "capitalize",
-                          fontFamily: "Inter_600SemiBold",
+                          fontSize: 12,
+                          backgroundColor: "#FFDCE1",
+                          padding: 5,
+                          borderRadius: 30,
+                          fontFamily: "Inter_300Light",
+                          marginBottom: 10,
+                          textAlign: "center",
+                          maxWidth: 140,
                         }}
                       >
-                        {pedidoActivo?.metodoPago}
+                        {new Date(pedidoActivo?.fecha || "").toLocaleString()}
                       </Text>
                     </View>
-                  </View>
-                  {mostrarModalDelivery &&
-                    Array.isArray(deliverys) &&
-                    deliverys.length > 0 && (
+                    <View style={{ gap: 20 }}>
                       <View
                         style={{
-                          gap: 20,
-                          borderTopColor: "#4A55684D",
-                          borderTopWidth: 1,
-                          paddingTop: 20,
+                          flexDirection: "row",
+                          width: "100%",
+                          alignItems: "center",
+                          gap: 10,
                         }}
                       >
+                        <Image
+                          source={require("../../assets/images/sellerOrderPage-user-icon.svg")}
+                          style={{ height: 26, width: 26 }}
+                          tintColor={"##EB6278"}
+                        />
+                        {/* <Text style={{ maxWidth: 100 }}>{pedidoActivo?.clienteId}</Text> */}
                         <Text
-                          style={{ fontFamily: "Inter_700Bold", fontSize: 16 }}
+                          style={{ maxWidth: 100, fontFamily: "Inter_700Bold" }}
                         >
-                          Deliverys disponibles
+                          {clientes[pedidoActivo?.clienteId || ""] ??
+                            "Cargando nombre..."}
                         </Text>
-                        <>
-                          {deliverys.map((delivery) => (
-                            <TouchableOpacity
-                              key={delivery.id}
-                              onPress={() => {
-                                setRepartidorSeleccionado(delivery);
-                                setDeliveryPorConfirmar(delivery);
-                              }}
-                              style={{
-                                padding: 12,
-                                borderRadius: 8,
-                                borderWidth: 1,
-                                borderColor: "#E94B64",
-                                marginBottom: 10,
-                              }}
-                            >
-                              <Text style={{ fontFamily: "Inter_600SemiBold" }}>
-                                Repartidor #{delivery.userId}
-                              </Text>
-                              <Text>Vehículo: {delivery.tipoVehiculo}</Text>
-                              <Text>
-                                Ubicación:{" "}
-                                {delivery.ubicacionActual.replace(/"/g, "")}
-                              </Text>
-                              <Text>Rating: {delivery.rating}</Text>
-                            </TouchableOpacity>
-                          ))}
-                          {deliveryPorConfirmar && (
-                            <TouchableOpacity
-                              style={{
-                                backgroundColor: "#E94B64",
-                                paddingVertical: 12,
-                                borderRadius: 6,
-                                marginTop: 10,
-                              }}
-                              onPress={() => {
-                                setRepartidorSeleccionado(deliveryPorConfirmar);
-                                asignarDelivery();
-                                setDeliveryPorConfirmar(null);
-                                setMostrarModalDelivery(false);
-                              }}
-                            >
-                              <Text
-                                style={{
-                                  color: "#fff",
-                                  textAlign: "center",
-                                  fontFamily: "Inter_600SemiBold",
-                                }}
-                              >
-                                Confirmar asignación
-                              </Text>
-                            </TouchableOpacity>
-                          )}
-                        </>
+                        <TouchableOpacity style={{}}>
+                          <View
+                            style={{
+                              alignItems: "center",
+                              justifyContent: "center",
+                              backgroundColor: "#FFDCE1",
+                              padding: 5,
+                              borderRadius: 30,
+                              width: 30,
+                              height: 30,
+                            }}
+                          >
+                            <Image
+                              source={require("../../assets/images/sellerOrderPage-phone-icon.svg")}
+                              style={{ height: 17, width: 16 }}
+                              tintColor={"##EB6278"}
+                            />
+                          </View>
+                        </TouchableOpacity>
+                        <TouchableOpacity style={{}}>
+                          <View
+                            style={{
+                              alignItems: "center",
+                              justifyContent: "center",
+                              backgroundColor: "#FFDCE1",
+                              padding: 5,
+                              borderRadius: 30,
+                              width: 30,
+                              height: 30,
+                            }}
+                          >
+                            <Image
+                              source={require("../../assets/images/sellerOrderPage-message-icon.svg")}
+                              style={{ height: 22, width: 24 }}
+                              tintColor={"##EB6278"}
+                            />
+                          </View>
+                        </TouchableOpacity>
                       </View>
-                    )}
-                  {mostrarModalDelivery && deliverys.length === 0 && (
-                    <Text style={{ textAlign: "center", fontStyle: "italic" }}>
-                      No hay repartidores disponibles.
-                    </Text>
-                  )}
-                  {!mostrarModalDelivery && (
+                      <View
+                        style={{
+                          flexDirection: "row",
+                          gap: 5,
+                          paddingBottom: 20,
+                          borderBottomWidth: 1,
+                          borderBottomColor: "#4A55684D",
+                        }}
+                      >
+                        <Text style={{}}>Estado actual del pedido:</Text>
+                        <Text
+                          style={{
+                            textTransform: "capitalize",
+                            fontFamily: "Inter_600SemiBold",
+                          }}
+                        >
+                          {pedidoActivo?.estado}
+                        </Text>
+                      </View>
+                      <View style={{}}>
+                        {pedidoActivo?.detalles?.length > 0 && (
+                          <View
+                            style={{
+                              padding: 10,
+                              borderRadius: 8,
+                              gap: 10,
+                            }}
+                          >
+                            <Text
+                              style={{
+                                fontFamily: "Inter_700Bold",
+                                marginBottom: 6,
+                                fontSize: 16,
+                              }}
+                            >
+                              Productos en el pedido:
+                            </Text>
+                            {pedidoActivo.detalles.map((detalle, idx) => (
+                              <View
+                                style={{
+                                  borderBottomWidth: 1,
+                                  borderBottomColor: "#9F9F9F9E",
+                                  padding: 10,
+                                  flexDirection: "row",
+                                  borderRadius: 10,
+                                  justifyContent: "space-between",
+                                  alignItems: "center",
+                                }}
+                                key={idx}
+                              >
+                                <View style={{ gap: 2 }}>
+                                  <Text
+                                    style={{
+                                      fontSize: 14,
+                                      marginBottom: 2,
+                                      fontFamily: "Inter_600SemiBold",
+                                    }}
+                                  >
+                                    {`${detalle.producto.nombre} x ${detalle.cantidad}`}
+                                  </Text>
+                                  <Text
+                                    style={{
+                                      fontSize: 13,
+                                      marginBottom: 2,
+                                      fontFamily: "Inter_400Regular",
+                                      width: 140,
+                                    }}
+                                  >
+                                    {`${detalle.producto.descripcion}`}
+                                  </Text>
+                                </View>
+                                <Text
+                                  style={{
+                                    fontSize: 14,
+                                    marginBottom: 2,
+                                    fontFamily: "Inter_700Bold",
+                                    backgroundColor: "#FFDCE1",
+                                    padding: 10,
+                                    paddingTop: 20,
+                                    paddingBottom: 20,
+                                    borderRadius: 30,
+                                  }}
+                                >
+                                  ${detalle.producto.precio}
+                                </Text>
+                              </View>
+                            ))}
+                          </View>
+                        )}
+                      </View>
+                      <View
+                        style={{
+                          backgroundColor: "#FF59631A",
+                          borderWidth: 1,
+                          borderColor: "#D61355",
+                          borderRadius: 10,
+                          padding: 10,
+                        }}
+                      >
+                        <View
+                          style={{
+                            flexDirection: "row",
+                            gap: 5,
+                            justifyContent: "space-between",
+                          }}
+                        >
+                          <Text style={{}}>Total:</Text>
+                          <Text
+                            style={{
+                              textTransform: "capitalize",
+                              fontFamily: "Inter_600SemiBold",
+                            }}
+                          >
+                            ${pedidoActivo?.total}
+                          </Text>
+                        </View>
+
+                        <View
+                          style={{
+                            flexDirection: "row",
+                            gap: 5,
+                            justifyContent: "space-between",
+                          }}
+                        >
+                          <Text style={{}}>Método de pago:</Text>
+                          <Text
+                            style={{
+                              textTransform: "capitalize",
+                              fontFamily: "Inter_600SemiBold",
+                            }}
+                          >
+                            {pedidoActivo?.metodoPago}
+                          </Text>
+                        </View>
+                      </View>
+                      {mostrarModalDelivery &&
+                        Array.isArray(deliverys) &&
+                        deliverys.length > 0 && (
+                          <View
+                            style={{
+                              gap: 20,
+                              borderTopColor: "#4A55684D",
+                              borderTopWidth: 1,
+                              paddingTop: 20,
+                            }}
+                          >
+                            <Text
+                              style={{
+                                fontFamily: "Inter_700Bold",
+                                fontSize: 16,
+                              }}
+                            >
+                              Deliverys disponibles
+                            </Text>
+                            <>
+                              {deliverys.map((delivery) => (
+                                <TouchableOpacity
+                                  key={delivery.id}
+                                  onPress={() => {
+                                    setRepartidorSeleccionado(delivery);
+                                    setDeliveryPorConfirmar(delivery);
+                                  }}
+                                  style={{
+                                    padding: 12,
+                                    borderRadius: 8,
+                                    borderWidth: 1,
+                                    borderColor: "#E94B64",
+                                    marginBottom: 10,
+                                  }}
+                                >
+                                  <Text
+                                    style={{ fontFamily: "Inter_600SemiBold" }}
+                                  >
+                                    Repartidor #{delivery.userId}
+                                  </Text>
+                                  <Text>Vehículo: {delivery.tipoVehiculo}</Text>
+                                  <Text>
+                                    Ubicación:{" "}
+                                    {delivery.ubicacionActual.replace(/"/g, "")}
+                                  </Text>
+                                  <Text>Rating: {delivery.rating}</Text>
+                                </TouchableOpacity>
+                              ))}
+                              {deliveryPorConfirmar && (
+                                <TouchableOpacity
+                                  style={{
+                                    backgroundColor: "#E94B64",
+                                    paddingVertical: 12,
+                                    borderRadius: 6,
+                                    marginTop: 10,
+                                  }}
+                                  onPress={() => {
+                                    setRepartidorSeleccionado(
+                                      deliveryPorConfirmar
+                                    );
+                                    asignarDelivery();
+                                    setDeliveryPorConfirmar(null);
+                                    setMostrarModalDelivery(false);
+                                  }}
+                                >
+                                  <Text
+                                    style={{
+                                      color: "#fff",
+                                      textAlign: "center",
+                                      fontFamily: "Inter_600SemiBold",
+                                    }}
+                                  >
+                                    Confirmar asignación
+                                  </Text>
+                                </TouchableOpacity>
+                              )}
+                            </>
+                          </View>
+                        )}
+                      {mostrarModalDelivery && deliverys.length === 0 && (
+                        <Text
+                          style={{ textAlign: "center", fontStyle: "italic" }}
+                        >
+                          No hay repartidores disponibles.
+                        </Text>
+                      )}
+                      {!mostrarModalDelivery && (
+                        <TouchableOpacity
+                          style={{
+                            backgroundColor: "#E94B64",
+                            paddingVertical: 10,
+                            borderRadius: 5,
+                          }}
+                          onPress={() => {
+                            refetchDeliverys();
+                            setMostrarModalDelivery(true);
+                          }}
+                        >
+                          <Text
+                            style={{
+                              textAlign: "center",
+                              color: "#fff",
+                              fontFamily: "Inter_600SemiBold",
+                            }}
+                          >
+                            Solicitar delivery
+                          </Text>
+                        </TouchableOpacity>
+                      )}
+                    </View>
                     <TouchableOpacity
+                      onPress={() => {
+                        setPedidoActivo(null);
+                        setDeliveryPorConfirmar(null);
+                        setMostrarModalDelivery(false);
+                      }}
                       style={{
                         backgroundColor: "#E94B64",
                         paddingVertical: 10,
                         borderRadius: 5,
-                      }}
-                      onPress={() => {
-                        refetchDeliverys();
-                        setMostrarModalDelivery(true);
                       }}
                     >
                       <Text
@@ -523,37 +646,14 @@ export default function MenuPrincipal() {
                           fontFamily: "Inter_600SemiBold",
                         }}
                       >
-                        Solicitar delivery
+                        Cerrar
                       </Text>
                     </TouchableOpacity>
-                  )}
+                  </View>
                 </View>
-                <TouchableOpacity
-                  onPress={() => {
-                    setPedidoActivo(null);
-                    setDeliveryPorConfirmar(null);
-                    setMostrarModalDelivery(false);
-                  }}
-                  style={{
-                    backgroundColor: "#E94B64",
-                    paddingVertical: 10,
-                    borderRadius: 5,
-                  }}
-                >
-                  <Text
-                    style={{
-                      textAlign: "center",
-                      color: "#fff",
-                      fontFamily: "Inter_600SemiBold",
-                    }}
-                  >
-                    Cerrar
-                  </Text>
-                </TouchableOpacity>
               </View>
-            </View>
-          </View>
-        </ScrollView>
+            </ScrollView>
+          )}
       </Modal>
     </View>
   );
