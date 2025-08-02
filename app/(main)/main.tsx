@@ -73,20 +73,22 @@ export default function MenuPrincipal() {
   const [isLogged, setLogged] = useState<string | null>(null);
   const [shops, setShops] = useState<Tienda[] | null>(null);
   const [orders, setOrders] = useState<Pedido[]>();
-  const [userId, setUserId] = useState<string | null>(null);
   useFonts({ Inter_600SemiBold, Inter_300Light, Inter_400Regular });
 
   useFocusEffect(
     useCallback(() => {
       let isActive = true;
-      console.log(userId)
 
       async function initial() {
-        getItem("@userId", setUserId);
+        getItem("@userId", (userId)=>{
+          getOrders(userId,setOrders)
+          getShops(setShops)
+
+          console.log(userId)
+
+        });
         getItem("@auth_token", setLogged);
-        if (!isActive && userId === null)return;
-        getOrders(userId,setOrders)
-        getShops(setShops)
+        
 
       }
       initial();
@@ -220,19 +222,19 @@ export default function MenuPrincipal() {
               source={require("../../assets/images/chevron.svg")}
             ></Image>
           </TouchableOpacity>
-          <ScrollView>
+          <ScrollView  horizontal showsHorizontalScrollIndicator={false}>
             {Array.isArray(orders) &&
               orders.map((item, index) => {
                 const tienda = Array.isArray(shops)
                   ? shops.find((s) => s.id === item.tiendaId)
                   : undefined;
                 return (
-                  <View style={{ flexDirection: "row" }} key={index}>
+                  <View style={{}} key={index}>
                     <TouchableOpacity onPress={()=>router.navigate('/(main)/pedidos')}
                       style={{
                         backgroundColor: "#E94B64",
                         height: 225,
-                        width: 150,
+                        width: 140,
                         borderRadius: 15,
                         marginLeft: 10,
                       }}

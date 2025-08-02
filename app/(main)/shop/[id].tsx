@@ -127,7 +127,7 @@ const agregarAlCarrito = async (
           <TouchableOpacity onPress={()=>{handlerProduct(product.id)}}>
           <View style={{marginRight:20,backgroundColor:'white',width:150,height:150,marginBottom:20,borderRadius:10,padding:5}}>
             <View style={{marginTop:25}}>
-              <Text style={{fontFamily:'Inter_600SemiBold',height:45}}>{product.nombre}</Text>
+              <Text style={{fontFamily:'Inter_600SemiBold',height:35}}>{product.nombre}</Text>
               <Text style={{fontFamily:'Inter_300Light'}}>{product.descripcion.length > 25 ? product.descripcion.substring(0, 25) + '...': product.descripcion}</Text>
               <View style={{flexDirection:'row',marginTop:10,justifyContent:'flex-end'}}>
                 <Text style={{fontFamily:'Inter_600SemiBold',fontSize:16}}>${product.precio}</Text>

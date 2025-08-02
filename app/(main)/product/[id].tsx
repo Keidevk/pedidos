@@ -62,7 +62,7 @@ const agregarAlCarrito = async (
           : item
       );
     } else {
-      actualizado = [...carritoTienda, { productoId: nuevoId, cantidad: 1, tiendaId }];
+      actualizado = [...carritoTienda, { productoId: nuevoId, cantidad: cantidad, tiendaId }];
     }
 
     await AsyncStorage.setItem(`carrito_${tiendaId}`, JSON.stringify(actualizado));
@@ -113,18 +113,18 @@ const agregarAlCarrito = async (
         </View>
         <Text style={{fontSize:16,marginHorizontal:20,fontFamily:'Inter_300Light',marginBottom:20}}>{productData.descripcion}</Text>
         <View style={{justifyContent: 'flex-end', alignItems: 'center',height:380,}}>
-            <View style={{backgroundColor:'#DA114C',flex:1,maxHeight:90,width:340,borderRadius:20,flexDirection:'row'}} >
-                <View style={{flexDirection:'row',marginVertical:'auto',marginLeft:20}}>
+            <View style={{backgroundColor:'#DA114C',flex:1,maxHeight:90,width:360,borderRadius:20,flexDirection:'row'}} >
+                <View style={{flexDirection:'row',marginVertical:'auto',marginLeft:10}}>
                     <TouchableOpacity onPress={()=>addOrRemoveProduct("-")} style={{backgroundColor:'white',height:30,width:30,borderRadius:100,}}>
                         <Text style={{fontSize:20,fontWeight:'black',color:'#DA114C',textAlign:'center'}}>-</Text>
                     </TouchableOpacity>
-                    <Text style={{marginVertical:'auto',color:'white',fontSize:20,marginHorizontal:15}}>{cantidad}</Text>
+                    <Text style={{width:25,marginVertical:'auto',color:'white',fontSize:20,marginHorizontal:15}}>{cantidad}</Text>
                     <TouchableOpacity onPress={()=>addOrRemoveProduct("+")} style={{backgroundColor:'white',height:30,width:30,borderRadius:100,}}>
                         <Text style={{fontSize:20,fontWeight:'black',color:'#DA114C',textAlign:'center'}}>+</Text>
                     </TouchableOpacity>
                 </View>
                 <View style={{marginVertical:'auto',paddingLeft:10}}>
-                    <TouchableOpacity onPress={()=>agregarAlCarrito(productData.id.toString(),productData.tiendaId.toString(),cantidad)} style={{flexDirection:'row',backgroundColor:'white',paddingVertical:20,paddingHorizontal:30,borderRadius:28.5}}>
+                    <TouchableOpacity onPress={()=>agregarAlCarrito(productData.id.toString(),productData.tiendaId.toString(),cantidad)} style={{width:200,flexDirection:'row',backgroundColor:'white',paddingVertical:20,paddingHorizontal:10,borderRadius:28.5}}>
                         <Text style={{color:'#5B5B5B',fontSize:14,fontWeight:"medium"}}>Añadir al Carrito</Text>
                         <Text style={{color:'#5B5B5B',paddingLeft:5,fontWeight:'bold'}}>${productData.precio * cantidad}</Text>
                     </TouchableOpacity>

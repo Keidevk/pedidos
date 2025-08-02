@@ -22,7 +22,6 @@ type Categoria = 'pendiente' | 'listo';
 
 export default function Pedidos(){
     const insets = useSafeAreaInsets();
-    const [userId,setUserId] = useState<string>()
     const [categoriaActual, setCategoriaActual] = useState<Categoria>('pendiente');
     const [pendientes, setPendientes] = useState<Pedido[]>([]);
     const [listos, setListos] = useState<Pedido[]>([]);
@@ -48,7 +47,7 @@ export default function Pedidos(){
   
 
 
-    const fetchOrders = async (): Promise<{
+    const fetchOrders = async (userId:string): Promise<{
       pendientes: Pedido[];
       listos: Pedido[];
     }> => {
@@ -75,10 +74,13 @@ export default function Pedidos(){
     useFocusEffect(
       React.useCallback(() => {
         const cargarPedidos = async () => {
-          await getItem('@userId',setUserId)
-          const { pendientes, listos } = await fetchOrders();
-          setPendientes(pendientes);
-          setListos(listos);
+          await getItem('@userId',async (userId)=>{
+            const { pendientes, listos } = await fetchOrders(userId);
+             setPendientes(pendientes);
+              setListos(listos);
+          })
+          
+         
 
         };
         

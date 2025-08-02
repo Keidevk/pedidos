@@ -77,7 +77,7 @@ export default function Category(){
                 placeholder="Buscar"
             ></TextInput>
         </View>
-        <ScrollView style={{paddingBottom:100}}> 
+        <ScrollView style={{marginBottom:100}}> 
         {products && products.map((product,index)=>{
         return (
         <TouchableOpacity onPress={()=>{handlerProduct(product.id)}} key={index}>        
