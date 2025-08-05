@@ -218,14 +218,14 @@ function handlerPayment({
             <View>
               <View style={{flexDirection:'row',height:73,}}>
                 <TouchableOpacity onPress={()=>setDelivery(true)} style={{flex:1,flexDirection:'row',borderRadius:10,borderWidth:1,borderColor:isDelivery ? '#E94B64':'#828282',marginLeft:10}}>
-                  <Text style={{marginVertical:'auto',marginLeft:5,fontSize:15,color:'#0000008A',fontFamily:'Inter_500Medium'}}>Delivery</Text>
+                  <Text style={{marginVertical:'auto',marginLeft:3,fontSize:14,color:'#0000008A',fontFamily:'Inter_500Medium'}}>Delivery</Text>
                   <Image 
                   source={require('../../../assets/images/delivery.svg')}
                   contentFit="cover"
                   style={{height:50,width:62,margin:'auto',}}/>
                 </TouchableOpacity>  
                 <TouchableOpacity onPress={()=>setDelivery(false)} style={{flex:1,flexDirection:'row',borderRadius:10,borderWidth:1,borderColor:isDelivery ? '#828282':'#E94B64',marginLeft:8,marginRight:10}}>
-                  <Text style={{marginVertical:'auto',marginLeft:5,fontSize:15,color:'#0000008A',fontFamily:'Inter_500Medium'}}>Retiro</Text>
+                  <Text style={{marginVertical:'auto',marginLeft:3,fontSize:14,color:'#0000008A',fontFamily:'Inter_500Medium'}}>Retiro</Text>
                   <Image 
                   source={require('../../../assets/images/retiro.svg')}
                   contentFit="cover"
