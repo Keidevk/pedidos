@@ -26,7 +26,7 @@ export default function RepartidorRegistrar(){
      <View style={style.textinput}>
        <TextInput
          style={{fontFamily:'Inter_300Light'}}
-         placeholder="Cedula"
+         placeholder="Cédula"
          value={cedula}
          onChangeText={onChangeCedula}>
        </TextInput>

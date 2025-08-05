@@ -67,7 +67,7 @@ export default function TiendaRegistrar(){
                 <View style={style.textinput}>
                   <TextInput
                     style={{fontFamily:'Inter_300Light'}}
-                    placeholder="Cedúla / RIF"
+                    placeholder="Cédula / RIF"
                     value={rif}
                     onChangeText={setRif}>
                   </TextInput>

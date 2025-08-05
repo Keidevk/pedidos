@@ -99,7 +99,7 @@ export default function ClienteRegistrar(){
          <View style={style.textinput}>
            <TextInput
              style={{fontFamily:'Inter_300Light'}}
-             placeholder="Cedula"
+             placeholder="Cédula"
              inputMode="numeric"
              value={cedula}
              onChangeText={setCedula}>
