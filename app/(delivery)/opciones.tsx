@@ -110,12 +110,34 @@ export default function Home() {
     }
 
     const jsonPayload = {
-      tipoVehiculo: vehiculoEditable.tipoVehiculo,
-      licencia: vehiculoEditable.licencia,
-      descripcion: vehiculoEditable.descripcion,
-      rating: vehiculoEditable.rating,
-      disponibilidad: vehiculoEditable.disponibilidad,
+      "tipoVehiculo": vehiculoEditable.tipoVehiculo,
+      "licencia": vehiculoEditable.licencia,
+      "descripcion": vehiculoEditable.descripcion,
+      "rating": vehiculoEditable.rating,
+      "disponibilidad": vehiculoEditable.disponibilidad,
     };
+
+    fetch(`${process.env.EXPO_PUBLIC_HOST}/api/delivery/update/${userId}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(jsonPayload),
+    })
+      .then(async (res) => {
+        const response = await res.json();
+        if (response.code === 200) {
+          alert("✅ Perfil actualizado correctamente");
+          setData(response.data);
+          setEditandoVehiculo(false);
+        } else {
+          alert("❌ Error al actualizar el perfil");
+        }
+      })
+      .catch((err) => {
+        console.error("Error al actualizar:", err);
+        alert("⛔ Error al conectar con el servidor");
+      });
 
     console.log("📦 JSON para enviar:", JSON.stringify(jsonPayload));
     setEditandoVehiculo(!editandoVehiculo);
