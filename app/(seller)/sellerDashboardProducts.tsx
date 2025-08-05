@@ -35,26 +35,31 @@ export default function SellerDashboardProducts() {
   }, []);
 
   useEffect(() => {
-    if (!userId) return;
+    setLoading(true);
 
-    const endpoint = `${process.env.EXPO_PUBLIC_HOST}/api/shop/userid/${userId}`;
+    const API_HOST = process.env.EXPO_PUBLIC_HOST;
+    const endpoint = `${API_HOST}/api/shop/userid/${userId}`;
 
     fetch(endpoint)
       .then((res) => res.json())
-      .then((tienda) => {
-        if (Array.isArray(tienda.productos)) {
+      .then((tiendaArray) => {
+        const tienda = tiendaArray?.[0];
+
+        if (Array.isArray(tienda?.productos)) {
           setProducts(tienda.productos);
         } else {
-          console.warn("La tienda no tiene productos:", tienda);
+          console.warn("Tienda sin productos o estructura inesperada:", tienda);
           setProducts([]);
         }
+
         setLoading(false);
       })
       .catch((err) => {
         console.error("Error al obtener productos:", err);
+        setProducts([]);
         setLoading(false);
       });
-  }, [userId]);
+  }, []);
 
   if (loading) return <ActivityIndicator size="large" color="#D61355" />;
 
