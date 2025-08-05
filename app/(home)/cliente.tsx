@@ -46,7 +46,7 @@ export async function handlerRegisterClient({
       router.navigate('/(home)')
     }
     else if(res.status === 409){
-      Alert.alert("Registro cliente","Ya existe un cliente con ese numero de cedula")
+      Alert.alert("Registro cliente","Ya existe un cliente con esos datos")
       router.navigate('/(home)')
     }
   })

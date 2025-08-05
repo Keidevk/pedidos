@@ -1,5 +1,6 @@
 import { Inter_300Light, Inter_900Black, useFonts } from '@expo-google-fonts/inter';
 import { LilyScriptOne_400Regular } from '@expo-google-fonts/lily-script-one';
+import { Image } from 'expo-image';
 import { Link } from 'expo-router';
 import React, { useState } from "react";
 import { Alert, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
@@ -56,6 +57,11 @@ export default function TiendaRegistrar(){
             contentContainerStyle={{ paddingTop: insets.top, paddingBottom: 20 }}
             keyboardShouldPersistTaps="handled">
               <View style={{ flex: 1, paddingTop: insets.top,}}>
+                <View style={{height:120,alignItems:'center'}}>
+                            <Image source={require('../../assets/images/logo.svg')}
+                            contentFit="contain"
+                            style={{width:200,height:120}} />
+                          </View>
                 <Text style={style.title}>Tienda</Text>
                 <Text style={style.subtitle}>Completa la información a continuación para para acceder a la aplicación</Text>
                 <View style={style.textinput}>
@@ -129,7 +135,7 @@ const style = StyleSheet.create({
   },
   title:{
     textAlign:'center',
-    marginTop:140,
+    marginTop:10,
     fontFamily:'LilyScriptOne_400Regular',
     fontSize:32
   },

@@ -156,14 +156,14 @@ export default function Pedidos(){
       : undefined;
 
     return (
-      <View key={p.id} style={{ flexDirection: 'row', alignItems: 'center', marginVertical: 5 }}>
+      <TouchableOpacity onPress={()=>{router.push({pathname:'/(main)/pedidos/[id]',params:{id:p.id,repartidorId:p.repartidorId}})}} key={p.id} style={{ flexDirection: 'row', alignItems: 'center', marginVertical: 5,marginLeft:10 }}>
         <View style={{ height: 50, width: 50, backgroundColor: '#A5A7B9', borderRadius: 10 }} />
         <View style={{ marginLeft: 10 }}>
             <Text style={{ fontWeight: 'bold' }}>{tienda?.nombre || 'Tienda desconocida'}</Text>
             <Text>{`Pedido #${p.id.slice(0, 6)}`}</Text>
             <Text style={{}}>${p.total}</Text>
         </View>
-      </View>
+      </TouchableOpacity>
     );
   })
 )}
