@@ -22,7 +22,7 @@ export default function Chat(){
   const handleSend = async () => {
     const userMessage:Message = { text: input, from: 'user' };
     setMessages(prev => [...prev, userMessage]);
-
+    setInput('');
     try {
         
         const response = await fetch(`${process.env.EXPO_PUBLIC_HOST}/api/message/`,{
@@ -31,16 +31,16 @@ export default function Chat(){
                 body:JSON.stringify({remitenteId:userId,message:userMessage.text})
             })
             const message = await response.json()
-              const botMessage = message?.payload?.message || 'Sin respuesta';
+            console.log(message)
+            const botMessage = await message.data || 'Sin respuesta';
             // const botMessage = message.message || 'Sin respuesta'
-            console.log(message.payload)
+            // console.log(message.payload)
             // const botMessage = "Hola amigo🥳🔥"
             setMessages(prev => [...prev, { text: botMessage, from: 'bot' }]) 
     } catch (err) {
       setMessages(prev => [...prev, { text: 'Error al conectar con el bot', from: 'bot' }]);
     }
 
-    setInput('');
   };
 
 

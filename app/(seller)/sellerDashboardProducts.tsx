@@ -31,18 +31,15 @@ export default function SellerDashboardProducts() {
   const [userId, setUserId] = useState<string>("");
 
   useEffect(() => {
-    getItem("@userId", setUserId);
   }, []);
 
   useEffect(() => {
     setLoading(true);
-
-    const API_HOST = process.env.EXPO_PUBLIC_HOST;
-    const endpoint = `${API_HOST}/api/shop/userid/${userId}`;
-
-    fetch(endpoint)
+    getItem("@userId", (userId)=>{
+      fetch(`${process.env.EXPO_PUBLIC_HOST}/api/product/getproducts/userid/${userId}`)
       .then((res) => res.json())
       .then((tiendaArray) => {
+        // console.log(tiendaArray)
         const tienda = tiendaArray?.[0];
 
         if (Array.isArray(tienda?.productos)) {
@@ -59,6 +56,7 @@ export default function SellerDashboardProducts() {
         setProducts([]);
         setLoading(false);
       });
+    });
   }, []);
 
   if (loading) return <ActivityIndicator size="large" color="#D61355" />;
@@ -124,9 +122,9 @@ export default function SellerDashboardProducts() {
               >
                 ${item.precio}
               </Text>
-              <Text style={{ fontFamily: "Inter_300Light" }}>
+              {/* <Text style={{ fontFamily: "Inter_300Light" }}>
                 Stock: {item.stock_actual}
-              </Text>
+              </Text> */}
             </View>
           </View>
         )}
