@@ -60,7 +60,9 @@ export default function SellerDashboardProducts() {
 
   return (
     <View style={{ padding: 20, gap: 20 }}>
-      <Text style={{ fontFamily: "Inter_700Bold" }}>Mis productos</Text>
+      <Text style={{ fontFamily: "Inter_700Bold", fontSize: 20 }}>
+        Mis productos
+      </Text>
       <FlatList
         data={products}
         keyExtractor={(item) => item.id.toString()}
