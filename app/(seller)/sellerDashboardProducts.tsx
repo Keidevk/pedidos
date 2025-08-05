@@ -1,127 +1,96 @@
-import {
-  Inter_300Light,
-  Inter_400Regular,
-  Inter_600SemiBold,
-  Inter_700Bold,
-  useFonts,
-} from "@expo-google-fonts/inter";
-import { Image } from "expo-image";
-import { useNavigation } from "expo-router";
-import { ScrollView, Text, TouchableOpacity, View } from "react-native";
-import { NativeStackNavigationProp } from "react-native-screens/lib/typescript/native-stack/types";
+import { useEffect, useState } from "react";
+import { ActivityIndicator, FlatList, Image, Text, View } from "react-native";
+import { getItem } from "../utils";
 
-export type RootStackParamList = {
-  sellerDashboard: undefined;
+type Product = {
+  id: string;
+  nombre: string;
+  descripcion: string;
+  precio: number;
+  imagen_url?: string;
+  stock_actual: number;
 };
 
-export default function MenuPrincipal() {
-  useFonts({
-    Inter_600SemiBold,
-    Inter_300Light,
-    Inter_400Regular,
-    Inter_700Bold,
-  });
-  const navigation =
-    useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+export default function SellerDashboardProducts() {
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [userId, setUserId] = useState<string>("");
+
+  useEffect(() => {
+    getItem("@userId", setUserId);
+  }, []);
+
+  useEffect(() => {
+    if (!userId) return;
+
+    const endpoint = `${process.env.EXPO_PUBLIC_HOST}/api/product/getproducts/userid/${userId}`;
+
+    fetch(endpoint)
+      .then((res) => res.json())
+      .then((data: Product[]) => {
+        setProducts(data);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error("Error al obtener productos:", err);
+        setLoading(false);
+      });
+  }, [userId]);
+
+  if (loading) return <ActivityIndicator size="large" color="#D61355" />;
+
   return (
-    <ScrollView style={{ padding: 10 }}>
-      <ScrollView horizontal showsHorizontalScrollIndicator style={{ gap: 2 }}>
-        <View style={{}}>
-          <TouchableOpacity
-            style={{ flexDirection: "row", gap: 2 }}
-            //   onPress={() => navigation.navigate("")}
-          >
-            <Text style={{ fontFamily: "Inter_400Regular" }}>
-              Mi lista de comidas
-            </Text>
-            <Image
-              source={require("../../assets/images/seller-chevron-icon.svg")}
-              style={{
-                height: 14,
-                width: 7,
-              }}
-            />
-          </TouchableOpacity>
-          <ScrollView horizontal contentContainerStyle={{}}>
-            <View style={{}}>
-              <View style={{ backgroundColor: "#D61355" }}>
-                <TouchableOpacity>
-                  <Text style={{ fontFamily: "Inter_300Light", color: "#fff" }}>
-                    Desayunos
-                  </Text>
-                </TouchableOpacity>
-              </View>
-              <View style={{ backgroundColor: "#fff" }}>
-                <TouchableOpacity>
-                  <Text style={{ fontFamily: "Inter_300Light", color: "#000" }}>
-                    Almuerzos
-                  </Text>
-                </TouchableOpacity>
-              </View>
-              <View style={{ backgroundColor: "#fff" }}>
-                <TouchableOpacity>
-                  <Text style={{ fontFamily: "Inter_300Light", color: "#000" }}>
-                    Cenas
-                  </Text>
-                </TouchableOpacity>
-              </View>
-              <View style={{ backgroundColor: "#fff" }}>
-                <TouchableOpacity>
-                  <Text style={{ fontFamily: "Inter_300Light", color: "#000" }}>
-                    Postres
-                  </Text>
-                </TouchableOpacity>
-              </View>
-              <View style={{ backgroundColor: "#fff" }}>
-                <TouchableOpacity>
-                  <Text style={{ fontFamily: "Inter_300Light", color: "#000" }}>
-                    Bebidas
-                  </Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          </ScrollView>
-          <TouchableOpacity style={{ flexDirection: "row", gap: 2 }}>
-            <Image
-              source={require("../../assets/images/seller-add-icon.svg")}
-              style={{
-                height: 25,
-                width: 24,
-              }}
-            />
-            <Text style={{}}>Añadir Nuevo Producto al Catálago</Text>
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
-      <Text style={{ fontFamily: "Inter_300Light", color: "#9C9BA6" }}>
-        Total 03 items
-      </Text>
-      <View style={{ width: "100%", flexDirection: "row", gap: 2 }}>
-        <Image
-          source={require("../../assets/images/seller-dashboard-img.svg")}
+    <FlatList
+      data={products}
+      keyExtractor={(item) => item.id.toString()}
+      contentContainerStyle={{ padding: 12 }}
+      renderItem={({ item }) => (
+        <View
           style={{
-            height: 62,
-            width: 62,
+            flexDirection: "row",
+            marginBottom: 12,
+            backgroundColor: "#fff",
+            borderRadius: 8,
+            overflow: "hidden",
+            elevation: 2,
           }}
-        />
-        <View style={{}}>
-          <Text style={{ fontFamily: "Inter_400Regular" }}>Product Text</Text>
-          <Text style={{ fontFamily: "Inter_600SemiBold", color: "#3B3B3B" }}>
-            Categoria
-          </Text>
-          <Text style={{ fontFamily: "Inter_700Bold", color: "#D61355" }}>
-            $ 20
-          </Text>
-        </View>
-        <View style={{ gap: 2 }}>
-          <View style={{}}>
-            <TouchableOpacity>-</TouchableOpacity>
-            <Text style={{}}>1</Text>
-            <TouchableOpacity>+</TouchableOpacity>
+        >
+          {item.imagen_url ? (
+            <Image
+              source={{ uri: item.imagen_url }}
+              style={{ width: 80, height: 80, backgroundColor: "#ccc" }}
+            />
+          ) : (
+            <View
+              style={{
+                width: 80,
+                height: 80,
+                backgroundColor: "#ccc",
+                justifyContent: "center",
+                alignItems: "center",
+              }}
+            >
+              <Text>No imagen</Text>
+            </View>
+          )}
+          <View style={{ flex: 1, padding: 8 }}>
+            <Text style={{ fontWeight: "bold", fontSize: 16 }}>
+              {item.nombre}
+            </Text>
+            <Text>{item.descripcion}</Text>
+            <Text
+              style={{
+                color: "#D61355",
+                fontWeight: "bold",
+                marginTop: 4,
+              }}
+            >
+              ${item.precio}
+            </Text>
+            <Text>Stock: {item.stock_actual}</Text>
           </View>
-          <TouchableOpacity style={{}}>Guardar</TouchableOpacity>
         </View>
-      </View>
-    </ScrollView>
+      )}
+    />
   );
 }
