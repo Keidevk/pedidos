@@ -25,6 +25,7 @@ export default function SellerDashboardProducts() {
     Inter_400Regular,
     Inter_700Bold,
   });
+
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [userId, setUserId] = useState<string>("");
@@ -36,12 +37,17 @@ export default function SellerDashboardProducts() {
   useEffect(() => {
     if (!userId) return;
 
-    const endpoint = `${process.env.EXPO_PUBLIC_HOST}/api/product/getproducts/userid/${userId}`;
+    const endpoint = `${process.env.EXPO_PUBLIC_HOST}/api/shop/userid/${userId}`;
 
     fetch(endpoint)
       .then((res) => res.json())
-      .then((data: Product[]) => {
-        setProducts(data);
+      .then((tienda) => {
+        if (Array.isArray(tienda.productos)) {
+          setProducts(tienda.productos);
+        } else {
+          console.warn("La tienda no tiene productos:", tienda);
+          setProducts([]);
+        }
         setLoading(false);
       })
       .catch((err) => {
@@ -53,15 +59,8 @@ export default function SellerDashboardProducts() {
   if (loading) return <ActivityIndicator size="large" color="#D61355" />;
 
   return (
-    <View
-      style={{
-        padding: 20,
-        gap: 20,
-      }}
-    >
-      <View style={{ width: "100%" }}>
-        <Text style={{ fontFamily: "Inter_700Bold" }}>Mis productos</Text>
-      </View>
+    <View style={{ padding: 20, gap: 20 }}>
+      <Text style={{ fontFamily: "Inter_700Bold" }}>Mis productos</Text>
       <FlatList
         data={products}
         keyExtractor={(item) => item.id.toString()}
@@ -92,11 +91,7 @@ export default function SellerDashboardProducts() {
                   alignItems: "center",
                 }}
               >
-                <Text
-                  style={{
-                    fontFamily: "Inter_600SemiBold",
-                  }}
-                >
+                <Text style={{ fontFamily: "Inter_600SemiBold" }}>
                   No imagen
                 </Text>
               </View>
@@ -122,11 +117,7 @@ export default function SellerDashboardProducts() {
               >
                 ${item.precio}
               </Text>
-              <Text
-                style={{
-                  fontFamily: "Inter_300Light",
-                }}
-              >
+              <Text style={{ fontFamily: "Inter_300Light" }}>
                 Stock: {item.stock_actual}
               </Text>
             </View>
