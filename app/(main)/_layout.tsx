@@ -55,7 +55,26 @@ export default function MainLayout() {
           ),
         }}
       />
+      <Tabs.Screen
+        name="chat"
+        options={{
+          title: "Chat",
+          tabBarIcon: () => (
+            <Image
+              source={require("../../assets/images/chat.svg")}
+              style={{ height: 30, width: 30, }}
+            />
+          ),
+        }}
+      />
 
+      <Tabs.Screen
+        name="pedidos/[id]"
+        options={{
+          href: null,
+          title: "pedidos/[id]",
+        }}
+      />
       <Tabs.Screen
         name="carrito/[id]"
         options={{
