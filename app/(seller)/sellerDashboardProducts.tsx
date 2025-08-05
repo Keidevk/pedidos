@@ -122,9 +122,9 @@ export default function SellerDashboardProducts() {
               >
                 ${item.precio}
               </Text>
-              <Text style={{ fontFamily: "Inter_300Light" }}>
+              {/* <Text style={{ fontFamily: "Inter_300Light" }}>
                 Stock: {item.stock_actual}
-              </Text>
+              </Text> */}
             </View>
           </View>
         )}
