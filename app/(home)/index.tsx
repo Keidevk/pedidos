@@ -72,7 +72,7 @@ export default function Index() {
 };
 
   return (
-    <View style={{paddingTop: insets.top,}}>
+    <View style={{paddingTop: insets.top}}>
       <View>
         <View style={{height:160,alignItems:'center'}}>
           <Image source={require('../../assets/images/logo.svg')}

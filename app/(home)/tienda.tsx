@@ -1,30 +1,36 @@
 import { Inter_300Light, Inter_900Black, useFonts } from '@expo-google-fonts/inter';
 import { LilyScriptOne_400Regular } from '@expo-google-fonts/lily-script-one';
 import { Image } from 'expo-image';
-import { Link } from 'expo-router';
-import React, { useState } from "react";
+import * as Location from 'expo-location';
+import { router } from 'expo-router';
+import React, { useEffect, useState } from "react";
+
 import { Alert, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-async function handlerRegisterShop(shopData: {
+async function handlerRegisterShop({
+  rif,
+  email,
+  nombre,
+  apellido,
+  telefono,
+  contrasena,
+  confirmarContrasena,
+  address
+}: {
   rif: string;
-  nombreTienda: string;
-  nombrePropietario: string;
+  email: string;
+  nombre: string;
+  apellido: string;
   telefono: string;
   contrasena: string;
   confirmarContrasena: string;
+  address:Location.LocationObject|null
 }) {
-  const {
-    rif,
-    nombreTienda,
-    nombrePropietario,
-    telefono,
-    contrasena,
-    confirmarContrasena,
-  } = shopData;
+  
 
   // Validación básica
-  if (!rif || !nombreTienda || !nombrePropietario || !telefono || !contrasena || !confirmarContrasena) {
+  if (!rif || !email || !nombre || !apellido || !telefono || !contrasena || !confirmarContrasena) {
     Alert.alert('Formulario incompleto', 'Por favor completa todos los campos');
   }
 
@@ -37,93 +43,139 @@ async function handlerRegisterShop(shopData: {
   //   headers: { 'Content-Type': 'application/json' },
   //   body: JSON.stringify({}),
   // });
+  await fetch(`${process.env.EXPO_PUBLIC_HOST}/api/shop/register`,{
+      method:'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ c_i:rif,email:email,name:nombre,lastname:apellido,phone:telefono,password:contrasena, address:`${address}`})
+  
+    }).then(res=>{
+      if(res.status === 201) {
+        Alert.alert("Registro Tienda","Tienda Creada con exito")
+        router.navigate('/(home)')
+      }
+      else if(res.status === 409){
+        Alert.alert("Registro Tienda","Ya existe una tienda con esos datos")
+        router.navigate('/(home)')
+      }
+    })
+  
 }
 
 export default function TiendaRegistrar(){
   const insets = useSafeAreaInsets();
-  const [rif, setRif] = useState('');
-  const [nombreTienda, setNombreTienda] = useState('');
-  const [nombrePropietario, setNombrePropietario] = useState('');
-  const [telefono, setTelefono] = useState('');
-  const [contrasena, setContrasena] = useState('');
-  const [confirmarContrasena, setConfirmarContrasena] = useState('');
+    const [cedula, setCedula] = useState('');
+    const [email, setEmail] = useState('');
+    const [nombre, setNombre] = useState('');
+    const [apellido, setApellido] = useState('');
+    const [telefono, setTelefono] = useState('');
+    const [contrasena, setContrasena] = useState('');
+    const [confirmarContrasena, setConfirmarContrasena] = useState(''); 
   useFonts({Inter_900Black,LilyScriptOne_400Regular,Inter_300Light});
+  const [location, setLocation] = useState<Location.LocationObject | null>(null);
+  
+
+   useEffect(() => {
+      async function getCurrentLocation() {
+        
+        let { status } = await Location.requestForegroundPermissionsAsync();
+        if (status !== 'granted') {
+          Alert.alert("Permiso denegado",'El permiso para la ubicacion fue denegado');
+          return;
+        }
+  
+        let location = await Location.getCurrentPositionAsync({});
+        setLocation(location);
+        console.log(location)
+      }
+  
+      getCurrentLocation();
+    }, []);
      
   return(
     <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={{ flex: 1 }}>
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={{ flex: 1 }}>
           <ScrollView
             contentContainerStyle={{ paddingTop: insets.top, paddingBottom: 20 }}
             keyboardShouldPersistTaps="handled">
-              <View style={{ flex: 1, paddingTop: insets.top,}}>
-                <View style={{height:120,alignItems:'center'}}>
-                            <Image source={require('../../assets/images/logo.svg')}
-                            contentFit="contain"
-                            style={{width:200,height:120}} />
-                          </View>
-                <Text style={style.title}>Tienda</Text>
-                <Text style={style.subtitle}>Completa la información a continuación para para acceder a la aplicación</Text>
-                <View style={style.textinput}>
-                  <TextInput
-                    style={{fontFamily:'Inter_300Light'}}
-                    placeholder="Cédula / RIF"
-                    value={rif}
-                    onChangeText={setRif}>
-                  </TextInput>
-                </View>
-                <View style={style.textinput}>
-                  <TextInput
-                    style={{fontFamily:'Inter_300Light'}}
-                    placeholder="Nombre de la Tienda"
-                    value={nombreTienda}
-                    onChangeText={setNombreTienda}>
-                  </TextInput>
-                </View>
-                <View style={style.textinput}>
-                  <TextInput
-                    style={{fontFamily:'Inter_300Light'}}
-                    placeholder="Nombre del Propietario"
-                    value={nombrePropietario}
-                    onChangeText={setNombrePropietario}>
-                  </TextInput>
-                </View>
-                <View style={style.textinput}>
-                  <TextInput
-                    style={{fontFamily:'Inter_300Light'}}
-                    placeholder="Teléfono"
-                    value={telefono}
-                    onChangeText={setTelefono}>
-                  </TextInput>
-                </View>
-                <View style={style.textinput}>
-                  <TextInput
-                    style={{fontFamily:'Inter_300Light'}}
-                    placeholder="Contraseña"
-                    value={contrasena}
-                    onChangeText={setContrasena}>
-                  </TextInput>
-                </View>
-                <View style={style.textinput}>
-                  <TextInput
-                    style={{fontFamily:'Inter_300Light'}}
-                    placeholder="Confirmar contraseña"
-                    value={confirmarContrasena}
-                    onChangeText={setConfirmarContrasena}>
-                  </TextInput>
-                </View>
-                <TouchableOpacity style={{
-                        marginTop:25,
-                        marginHorizontal:'8%',
-                        borderRadius:10,
-                        backgroundColor:'#FE9BAB',
-                        boxShadow:[{blurRadius:4,offsetX:1,offsetY:2,color:'#828282'}],
-                      }}>
-                        <Link href={'/(home)/registrar'} style={style.textButton}>Registrarse</Link>
-                </TouchableOpacity>
+            <View style={{ flex: 1,}}>
+              <View style={{height:120,alignItems:'center'}}>
+                <Image source={require('../../assets/images/logo.svg')}
+                contentFit="contain"
+                style={{width:200,height:120}} />
               </View>
+             <Text style={style.title}>Tienda</Text>
+             <Text style={style.subtitle}>Completa la información a continuación para para acceder a la aplicación</Text>
+             <View style={style.textinput}>
+               <TextInput
+                 style={{fontFamily:'Inter_300Light'}}
+                 placeholder="Cédula / Rif"
+                 inputMode="numeric"
+                 value={cedula}
+                 onChangeText={setCedula}>
+               </TextInput>
+             </View>
+             <View style={style.textinput}>
+               <TextInput
+                 style={{fontFamily:'Inter_300Light'}}
+                 placeholder="Correo Electrónico"
+                 value={email}
+                 onChangeText={setEmail}>
+               </TextInput>
+             </View>
+             <View style={style.textinput}>
+               <TextInput
+                 style={{fontFamily:'Inter_300Light'}}
+                 placeholder="Nombre"
+                 value={nombre}
+                 onChangeText={setNombre}>
+               </TextInput>
+             </View>
+             <View style={style.textinput}>
+               <TextInput
+                 style={{fontFamily:'Inter_300Light'}}
+                 placeholder="Apellido"
+                 value={apellido}
+                 onChangeText={setApellido}>
+               </TextInput>
+             </View>
+             <View style={style.textinput}>
+               <TextInput
+                 style={{fontFamily:'Inter_300Light'}}
+                 placeholder="Teléfono"
+                 inputMode="numeric"
+                 value={telefono}
+                 onChangeText={setTelefono}>
+               </TextInput>
+             </View>
+             <View style={style.textinput}>
+               <TextInput
+                 style={{fontFamily:'Inter_300Light'}}
+                 placeholder="Contraseña"
+                 value={contrasena}
+                 onChangeText={setContrasena}>
+               </TextInput>
+             </View>
+             <View style={style.textinput}>
+               <TextInput
+                 style={{fontFamily:'Inter_300Light'}}
+                 placeholder="Confirmar contraseña"
+                 value={confirmarContrasena}
+                 onChangeText={setConfirmarContrasena}>
+               </TextInput>
+             </View>
+             <TouchableOpacity onPress={()=>handlerRegisterShop({rif:cedula,email,nombre,apellido,telefono,contrasena,confirmarContrasena,address:location})} style={{
+                     marginTop:25,
+                     marginHorizontal:'8%',
+                     borderRadius:10,
+                     backgroundColor:'#FE9BAB',
+                     boxShadow:[{blurRadius:4,offsetX:1,offsetY:2,color:'#828282'}],
+                   }}>
+                     <Text  style={style.textButton}>Registrarse</Text>
+                   </TouchableOpacity>
+            </View>
           </ScrollView>
-  </KeyboardAvoidingView>
+        </KeyboardAvoidingView>
         )
 }
 const style = StyleSheet.create({

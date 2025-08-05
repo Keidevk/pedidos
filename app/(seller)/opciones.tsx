@@ -19,63 +19,53 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { getItem } from "../utils";
 
-type Vehiculo = {
-  tipoVehiculo: string;
-  descripcion: string;
-  rating: string;
-  disponibilidad: boolean;
-  licencia: string;
-};
-
-type Repartidor = {
+type Tienda = {
   nombre: string;
-  apellido: string;
-  telefono: string;
-  direccion: string;
-  fotoPerfil: string;
-  vehiculo: Vehiculo;
-  documento_identidad: string;
+  descripcion: string;
+  ubicacion: string;
+  horarioApertura: string;
+  horarioCierre: string;
+  tiempoEntregaPromedio: number;
+  fotoPerfil?: string;
 };
 
-export default function Home() {
+export default function ShopProfile() {
   useFonts({
     Inter_600SemiBold,
     Inter_300Light,
     Inter_400Regular,
     Inter_700Bold,
   });
+  
   const insets = useSafeAreaInsets();
-  const [userId, setUserId] = useState<string>();
-
-  const [data, setData] = useState<Repartidor | null>(null);
+  const [shopId, setShopId] = useState<string>();
+  const [data, setData] = useState<Tienda | null>(null);
   const [loading, setLoading] = useState(true);
-  const [vehiculoEditable, setVehiculoEditable] = useState<Vehiculo | null>(
-    null
-  );
-  const [editandoVehiculo, setEditandoVehiculo] = useState(false);
+  const [editando, setEditando] = useState(false);
+  const [tiendaEditable, setTiendaEditable] = useState<Tienda | null>(null);
 
   useEffect(() => {
     getItem("@userId", (id) => {
       if (!id) {
-        console.warn("⚠️ No hay ID de usuario");
+        console.warn("⚠️ No hay ID de tienda");
         return;
       }
-      setUserId(id);
+      setShopId(id);
+      console.log(id)
 
-      const url = `${process.env.EXPO_PUBLIC_HOST}/api/delivery/${id}`;
+      const url = `${process.env.EXPO_PUBLIC_HOST}/api/shop/userid/${id}`;
       console.log("🔎 Haciendo fetch a:", url);
 
       fetch(url)
         .then(async (res) => {
           const texto = await res.text();
           console.log("📦 Raw response:", texto);
+
           try {
             const json = JSON.parse(texto);
             console.log("✅ JSON parseado:", json);
-            if (json.code === 200) {
-              setData(json.data);
-              setVehiculoEditable(json.data.vehiculo);
-            } else console.warn("❌ Error de código:", json);
+            setData(json);
+            setTiendaEditable(json);
           } catch (error) {
             console.error("💥 Error al parsear JSON:", error);
           }
@@ -85,7 +75,48 @@ export default function Home() {
         })
         .finally(() => setLoading(false));
     });
-  }, []);
+  },[] );
+
+  const handleSubmit = () => {
+    if (!tiendaEditable) {
+      alert("❌ No hay datos para guardar");
+      return;
+    }
+
+    const jsonPayload = {
+      "nombre": tiendaEditable.nombre,
+      "descripcion": tiendaEditable.descripcion,
+      "ubicacion": tiendaEditable.ubicacion,
+      "horarioApertura": tiendaEditable.horarioApertura,
+      "horarioCierre": tiendaEditable.horarioCierre,
+      "tiempoEntregaPromedio": tiendaEditable.tiempoEntregaPromedio,
+    };
+
+    console.log("📦 JSON para enviar:", JSON.stringify(jsonPayload));
+    
+    // Aquí iría la llamada a la API para actualizar los datos
+    fetch(`${process.env.EXPO_PUBLIC_HOST}/api/shop/update/${shopId}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(jsonPayload),
+    })
+      .then(async (res) => {
+        const response = await res.json();
+        if (response.code === 200) {
+          alert("✅ Perfil actualizado correctamente");
+          setData(tiendaEditable);
+          setEditando(false);
+        } else {
+          alert("❌ Error al actualizar el perfil");
+        }
+      })
+      .catch((err) => {
+        console.error("Error al actualizar:", err);
+        alert("⛔ Error al conectar con el servidor");
+      });
+  };
 
   if (loading) {
     return (
@@ -98,28 +129,10 @@ export default function Home() {
   if (!data) {
     return (
       <View style={{ padding: 30 }}>
-        <Text>No se pudo cargar el perfil.</Text>
+        <Text>No se pudo cargar el perfil de la tienda.</Text>
       </View>
     );
   }
-
-  const handleSubmit = () => {
-    if (!vehiculoEditable) {
-      alert("❌ No hay datos para guardar");
-      return;
-    }
-
-    const jsonPayload = {
-      tipoVehiculo: vehiculoEditable.tipoVehiculo,
-      licencia: vehiculoEditable.licencia,
-      descripcion: vehiculoEditable.descripcion,
-      rating: vehiculoEditable.rating,
-      disponibilidad: vehiculoEditable.disponibilidad,
-    };
-
-    console.log("📦 JSON para enviar:", JSON.stringify(jsonPayload));
-    setEditandoVehiculo(!editandoVehiculo);
-  };
 
   return (
     <ScrollView
@@ -140,7 +153,7 @@ export default function Home() {
       >
         <TouchableOpacity
           style={{ flexDirection: "row", gap: 10, alignItems: "center" }}
-          //   onPress={() => navigation.navigate("sellerDashboard")}
+          onPress={() => router.back()}
         >
           <View
             style={{
@@ -169,7 +182,7 @@ export default function Home() {
               textAlign: "center",
             }}
           >
-            Perfil
+            Perfil de Tienda
           </Text>
         </TouchableOpacity>
       </View>
@@ -204,7 +217,7 @@ export default function Home() {
               borderColor: "#FFF",
               borderWidth: 2,
             }}
-            onPress={() => setEditandoVehiculo(!editandoVehiculo)}
+            onPress={() => setEditando(!editando)}
           >
             <Image
               source={require("../../assets/images/delivery-pencil-icon.svg")}
@@ -253,12 +266,12 @@ export default function Home() {
         >
           <Text
             style={{ fontFamily: "Inter_600SemiBold" }}
-          >{`ID Repartidor: ${userId}`}</Text>
+          >{`ID Tienda: ${shopId}`}</Text>
         </View>
 
         <View style={{ width: "100%", gap: 10 }}>
-          <Text style={{ textTransform: "uppercase" }}>
-            Información personal
+          <Text style={{ textTransform: "uppercase",fontFamily:'Inter_700Bold',textAlign:'center' }}>
+            Información de la tienda
           </Text>
           <View
             style={{
@@ -268,10 +281,11 @@ export default function Home() {
               padding: 15,
               alignItems: "center",
               justifyContent: "center",
-              width: "100%",
+              width: "110%",
               gap: 15,
             }}
           >
+            {/* Nombre */}
             <View
               style={{
                 flexDirection: "row",
@@ -280,178 +294,33 @@ export default function Home() {
                 alignItems: "center",
               }}
             >
-              <View
-                style={{
-                  backgroundColor: "#EEEEEE",
-                  padding: 10,
-                  borderRadius: 30,
-                  width: 32,
-                  height: 32,
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
-                <Image
-                  source={require("../../assets/images/delivery-profile-papers-icon.svg")}
-                  style={{
-                    height: 21,
-                    width: 18,
-                  }}
-                />
-              </View>
               <Text
                 style={{
                   textTransform: "uppercase",
                   color: "#3B3B3B",
-                  fontFamily: "Inter_300Light",
+                  fontFamily: "Inter_600SemiBold",
                   width: 100,
                 }}
               >
                 Nombre
               </Text>
-              <Text style={{ textTransform: "uppercase", width: 100 }}>
-                {`${data.nombre} ${data.apellido}`}
-              </Text>
+              <TextInput
+                style={{
+                  // textTransform: "uppercase",
+                  width: 200,
+                  fontFamily: editando ? "Inter_400Regular" : "I0nter_300Light",
+                }}
+                value={tiendaEditable?.nombre || ""}
+                onChangeText={(text) =>
+                  setTiendaEditable(
+                    (prev) => prev && { ...prev, nombre: text }
+                  )
+                }
+                editable={editando}
+              />
             </View>
-            <View
-              style={{
-                flexDirection: "row",
-                justifyContent: "space-between",
-                width: "100%",
-                alignItems: "center",
-              }}
-            >
-              <View
-                style={{
-                  backgroundColor: "#EEEEEE",
-                  padding: 10,
-                  width: 32,
-                  height: 32,
-                  borderRadius: 30,
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
-                <Image
-                  source={require("../../assets/images/delivery-profile-cedula-icon.svg")}
-                  style={{
-                    height: 14,
-                    width: 21,
-                  }}
-                />
-              </View>
-              <Text
-                style={{
-                  textTransform: "uppercase",
-                  color: "#3B3B3B",
-                  fontFamily: "Inter_300Light",
-                  width: 100,
-                }}
-              >
-                Cédula
-              </Text>
-              <Text style={{ textTransform: "uppercase", width: 100 }}>
-                {`${data.documento_identidad}`}
-              </Text>
-            </View>
-            <View
-              style={{
-                flexDirection: "row",
-                justifyContent: "space-between",
-                width: "100%",
-                alignItems: "center",
-              }}
-            >
-              <View
-                style={{
-                  backgroundColor: "#EEEEEE",
-                  padding: 10,
-                  borderRadius: 30,
-                  alignItems: "center",
-                  width: 32,
-                  height: 32,
-                  justifyContent: "center",
-                }}
-              >
-                <Image
-                  source={require("../../assets/images/delivery-profile-phone-icon.svg")}
-                  style={{
-                    height: 17,
-                    width: 19,
-                  }}
-                />
-              </View>
-              <Text
-                style={{
-                  textTransform: "uppercase",
-                  color: "#3B3B3B",
-                  width: 100,
-                  fontFamily: "Inter_300Light",
-                }}
-              >
-                Teléfono
-              </Text>
-              <Text style={{ textTransform: "uppercase", width: 100 }}>
-                {`${data.telefono}`}
-              </Text>
-            </View>
-          </View>
-        </View>
-        <View style={{ width: "100%", gap: 10 }}>
-          <Text style={{ textTransform: "uppercase" }}>
-            Información del vehículo
-          </Text>
-          <View
-            style={{
-              borderWidth: 1,
-              borderColor: "#E0E0E0",
-              borderRadius: 10,
-              padding: 15,
-              alignItems: "center",
-              justifyContent: "center",
-              width: "100%",
-              gap: 15,
-            }}
-          >
-            <View
-              style={{
-                flexDirection: "row",
-                justifyContent: "space-between",
-                width: "100%",
-                alignItems: "center",
-              }}
-            >
-              <Text
-                style={{
-                  textTransform: "uppercase",
-                  color: "#3B3B3B",
-                  fontFamily: "Inter_300Light",
-                  width: 100,
-                }}
-              >
-                Tipo
-              </Text>
 
-              <TextInput
-                style={{
-                  textTransform: "uppercase",
-                  width: 100,
-                  textAlign: "center",
-                }}
-                value={
-                  vehiculoEditable?.tipoVehiculo === ""
-                    ? `NO REGISTRADO`
-                    : `${vehiculoEditable?.tipoVehiculo.toLocaleUpperCase()}`
-                }
-                onChangeText={(text) =>
-                  setVehiculoEditable(
-                    (prev) => prev && { ...prev, tipoVehiculo: text }
-                  )
-                }
-                editable={editandoVehiculo}
-                multiline
-              />
-            </View>
+            {/* Descripción */}
             <View
               style={{
                 flexDirection: "row",
@@ -464,98 +333,208 @@ export default function Home() {
                 style={{
                   textTransform: "uppercase",
                   color: "#3B3B3B",
-                  fontFamily: "Inter_300Light",
+                  fontFamily: "Inter_600SemiBold",
                   width: 100,
-                }}
-              >
-                Placa
-              </Text>
-              <TextInput
-                style={{
-                  textTransform: "uppercase",
-                  width: 100,
-                  textAlign: "center",
-                }}
-                value={
-                  vehiculoEditable?.licencia === ""
-                    ? `NO REGISTRADO`
-                    : `${vehiculoEditable?.licencia.toLocaleUpperCase()}`
-                }
-                onChangeText={(text) =>
-                  setVehiculoEditable(
-                    (prev) => prev && { ...prev, licencia: text }
-                  )
-                }
-                editable={editandoVehiculo}
-                multiline
-              />
-            </View>
-            <View
-              style={{
-                flexDirection: "row",
-                justifyContent: "space-between",
-                width: "100%",
-                alignItems: "center",
-              }}
-            >
-              <Text
-                style={{
-                  textTransform: "uppercase",
-                  color: "#3B3B3B",
-                  width: 100,
-                  fontFamily: "Inter_300Light",
                 }}
               >
                 Descripción
               </Text>
               <TextInput
                 style={{
-                  textTransform: "uppercase",
-                  width: 100,
-                  textAlign: "center",
+                  // textTransform: "uppercase",
+                  width: 200,
+                  fontFamily: editando ? "Inter_400Regular" : "Inter_300Light",
                 }}
-                value={
-                  vehiculoEditable?.descripcion === ""
-                    ? `NO REGISTRADO`
-                    : `${vehiculoEditable?.descripcion.toLocaleUpperCase()}`
-                }
+                value={tiendaEditable?.descripcion || ""}
                 onChangeText={(text) =>
-                  setVehiculoEditable(
+                  setTiendaEditable(
                     (prev) => prev && { ...prev, descripcion: text }
                   )
                 }
-                editable={editandoVehiculo}
+                editable={editando}
                 multiline
               />
             </View>
-            <TouchableOpacity
-              style={{ width: "100%", alignItems: "center" }}
-              onPress={handleSubmit}
+
+            {/* Ubicación */}
+            <View
+              style={{
+                flexDirection: "row",
+                justifyContent: "space-between",
+                width: "100%",
+                alignItems: "center",
+              }}
             >
-              <View
+              <Text
                 style={{
-                  width: 120,
-                  padding: 10,
-                  borderRadius: 30,
-                  backgroundColor: "#EB6278",
+                  textTransform: "uppercase",
+                  color: "#3B3B3B",
+                  fontFamily: "Inter_600SemiBold",
+                  width: 100,
                 }}
               >
-                <Text
+                Ubicación
+              </Text>
+              <TextInput
+                style={{
+                  // textTransform: "uppercase",
+                  width: 200,
+                  // textAlign: "right",
+                  fontFamily: editando ? "Inter_400Regular" : "Inter_300Light",
+                }}
+                value={tiendaEditable?.ubicacion || ""}
+                onChangeText={(text) =>
+                  setTiendaEditable(
+                    (prev) => prev && { ...prev, ubicacion: text }
+                  )
+                }
+                editable={editando}
+              />
+            </View>
+
+            {/* Horario Apertura */}
+            <View
+              style={{
+                flexDirection: "row",
+                justifyContent: "space-between",
+                width: "100%",
+                alignItems: "center",
+              }}
+            >
+              <Text
+                style={{
+                  textTransform: "uppercase",
+                  color: "#3B3B3B",
+                  fontFamily: "Inter_600SemiBold",
+                  width: 100,
+                }}
+              >
+                Apertura
+              </Text>
+              {/* <RNDateTimePicker mode="time" value={new Date(tiendaEditable!.horarioApertura)}/> */}
+              <TextInput
+                style={{
+                  // textTransform: "uppercase",
+                  width: 200,
+                  // textAlign: "right",
+                  fontFamily: editando ? "Inter_400Regular" : "Inter_300Light",
+                }}
+                value={tiendaEditable?.horarioApertura || ""}
+                onChangeText={(text) =>
+                  setTiendaEditable(
+                    (prev) => prev && { ...prev, horarioApertura: text }
+                  )
+                }
+                editable={editando}
+                placeholder="HH:MM"
+              />
+            </View>
+
+            {/* Horario Cierre */}
+            <View
+              style={{
+                flexDirection: "row",
+                justifyContent: "space-between",
+                width: "100%",
+                alignItems: "center",
+              }}
+            >
+              <Text
+                style={{
+                  textTransform: "uppercase",
+                  color: "#3B3B3B",
+                  fontFamily: "Inter_600SemiBold",
+                  width: 100,
+                }}
+              >
+                Cierre
+              </Text>
+              <TextInput
+                style={{
+                  // textTransform: "uppercase",
+                  width: 200,
+                  // textAlign: "right",
+                  fontFamily: editando ? "Inter_400Regular" : "Inter_300Light",
+                }}
+                value={tiendaEditable?.horarioCierre || ""}
+                onChangeText={(text) =>
+                  setTiendaEditable(
+                    (prev) => prev && { ...prev, horarioCierre: text }
+                  )
+                }
+                editable={editando}
+                placeholder="HH:MM"
+              />
+            </View>
+
+            {/* Tiempo Entrega Promedio */}
+            <View
+              style={{
+                flexDirection: "row",
+                justifyContent: "space-between",
+                width: "100%",
+                alignItems: "center",
+              }}
+            >
+              <Text
+                style={{
+                  textTransform: "uppercase",
+                  color: "#3B3B3B",
+                  fontFamily: "Inter_600SemiBold",
+                  width: 100,
+                }}
+              >
+                Tiempo Entrega (min)
+              </Text>
+              <TextInput
+                style={{
+                  // textTransform: "uppercase",
+                  width: 200,
+                  // textAlign: "right",
+                  fontFamily: editando ? "Inter_400Regular" : "Inter_300Light",
+                }}
+                value={tiendaEditable?.tiempoEntregaPromedio?.toString() || ""}
+                onChangeText={(text) =>
+                  setTiendaEditable(
+                    (prev) => prev && { ...prev, tiempoEntregaPromedio: parseInt(text) || 0 }
+                  )
+                }
+                editable={editando}
+                keyboardType="numeric"
+              />
+            </View>
+
+            {editando && (
+              <TouchableOpacity
+                style={{ width: "100%", alignItems: "center" }}
+                onPress={handleSubmit}
+              >
+                <View
                   style={{
-                    textTransform: "uppercase",
-                    color: "#fff",
-                    fontFamily: "Inter_700Bold",
-                    textAlign: "center",
+                    width: 120,
+                    padding: 10,
+                    borderRadius: 30,
+                    backgroundColor: "#EB6278",
                   }}
                 >
-                  Guardar
-                </Text>
-              </View>
-            </TouchableOpacity>
+                  <Text
+                    style={{
+                      textTransform: "uppercase",
+                      color: "#fff",
+                      fontFamily: "Inter_700Bold",
+                      textAlign: "center",
+                    }}
+                  >
+                    Guardar
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            )}
           </View>
         </View>
+        
         <TouchableOpacity
-          onPress={()=>router.push({pathname:'/'})}
+          onPress={() => router.push({ pathname: '/' })}
           style={{
             flexDirection: "row",
             alignItems: "center",
@@ -590,7 +569,7 @@ export default function Home() {
               fontSize: 16,
             }}
           >
-            Cerrar cuenta
+            Cerrar sesión
           </Text>
         </TouchableOpacity>
       </View>
