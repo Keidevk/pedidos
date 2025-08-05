@@ -84,6 +84,8 @@ export default function sellerStats() {
 
   const [shopId, setShopId] = useState("0");
   const [shop, setShop] = useState<Shop | null>(null);
+  const [cantidadDeliveriesAsignados, setCantidadDeliveriesAsignados] =
+    useState<number>(0);
 
   const [totalOrders, setTotalOrders] = useState<number | null>(null);
 
@@ -96,6 +98,7 @@ export default function sellerStats() {
 
   useEffect(() => {
     getItem("@userId", setShopId);
+
     const fetchData = async () => {
       setLoading(true);
       try {
@@ -114,19 +117,19 @@ export default function sellerStats() {
         const response = await fetch(
           `${process.env.EXPO_PUBLIC_HOST}/api/stats/getStats?${query}`
         );
-        console.log(response);
         const json = await response.json();
-        console.log("⚠️ Respuesta cruda:", json); // En Expo Go no lo verás, así que mostralo en pantalla:
+
         if (!Array.isArray(json)) {
           console.warn("Respuesta inválida para map()", json);
           setChartData([]);
           return;
         }
+
         const formatted =
           chartPeriod === "week"
             ? processWeeklyData(
                 json.map((item) => ({
-                  day_of_week: parseInt(item.day_of_week, 10), // <-- asegurar que sea número
+                  day_of_week: parseInt(item.day_of_week, 10),
                   total: item.total,
                 }))
               )
@@ -159,42 +162,53 @@ export default function sellerStats() {
         const res = await fetch(
           `${process.env.EXPO_PUBLIC_HOST}/api/shop/userid/${shopId}`
         );
-        if (!res.ok) throw new Error("Error al traer datos");
-        console.warn(`${process.env.EXPO_HOST_URL}/api/shop/userid/${shopId}`);
+        if (!res.ok) throw new Error("Error al traer datos de tienda");
         const data = await res.json();
-        console.warn(data);
-
         setShop(data);
       } catch (err) {
         console.error("❌ Error al traer tienda", err);
       }
     };
-    const fetchOrderStats = async (shopId: number) => {
+
+    const fetchOrderStats = async () => {
       try {
         const res = await fetch(
           `${process.env.EXPO_PUBLIC_HOST}/api/stats/orders?shopId=${shopId}`
         );
         if (!res.ok) throw new Error("Error al obtener pedidos");
-
-        const totalOrders = await res.json(); // Esto será un número directamente: 1
-        console.log("🧾 Total de pedidos:", totalOrders);
-        return totalOrders;
+        const totalOrders = await res.json();
+        setTotalOrders(typeof totalOrders === "number" ? totalOrders : 0);
       } catch (err) {
         console.error("❌ Falló el fetch de pedidos:", err);
-        return null;
+      }
+    };
+
+    const fetchDeliveryStats = async () => {
+      try {
+        const res = await fetch(
+          `${process.env.EXPO_PUBLIC_HOST}/api/shop/count/delivery/${shopId}`
+        );
+        const data = await res.json();
+        if (typeof data?.cantidadDeliveriesAsignados === "number") {
+          setCantidadDeliveriesAsignados(data.cantidadDeliveriesAsignados);
+        } else {
+          console.warn("Formato inesperado en deliverys:", data);
+          setCantidadDeliveriesAsignados(0);
+        }
+      } catch (err) {
+        console.error("❌ Error al traer deliverys:", err);
+        setCantidadDeliveriesAsignados(0);
       }
     };
 
     if (shopId !== "0") {
       fetchData();
       fetchShop();
-      fetchOrderStats(Number(shopId)).then((value) => {
-        if (typeof value === "number") {
-          setTotalOrders(value);
-        }
-      });
+      fetchOrderStats();
+      fetchDeliveryStats();
     }
   }, [chartPeriod, currentDate, shopId]);
+
   const getWeekRange = (currentDate: Date) => {
     const day = currentDate.getDay(); // 0 (Dom) → 6 (Sáb)
     const diffToMonday = day === 0 ? -6 : 1 - day;
@@ -354,7 +368,7 @@ export default function sellerStats() {
                 color: "#32343E",
               }}
             >
-              05
+              {cantidadDeliveriesAsignados.toString().padStart(2, "0")}
             </Text>
             <Text
               style={{
