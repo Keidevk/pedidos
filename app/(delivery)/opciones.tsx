@@ -296,10 +296,12 @@ export default function Home() {
               borderColor: "#E0E0E0",
               borderRadius: 10,
               padding: 15,
-              alignItems: "center",
-              justifyContent: "center",
               width: "100%",
               gap: 15,
+            }}
+            contentContainerStyle={{
+              alignItems: "center",
+              justifyContent: "center",
             }}
           >
             <View
