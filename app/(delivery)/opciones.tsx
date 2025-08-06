@@ -129,9 +129,7 @@ export default function Home() {
     const jsonPayload = {
       tipoVehiculo: vehiculoEditable.tipoVehiculo,
       licencia: vehiculoEditable.licencia,
-      vehiculoDescripcion: vehiculoEditable.descripcion ?? "",
-      rating: vehiculoEditable.rating,
-      disponibilidad: vehiculoEditable.disponibilidad,
+      descripcion: vehiculoEditable.descripcion ?? "",
     };
 
     fetch(`${process.env.EXPO_PUBLIC_HOST}/api/delivery/update/${userId}`, {
