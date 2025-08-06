@@ -157,7 +157,7 @@ export default function MenuPrincipal() {
               <Image
                 contentFit="cover"
                 style={style.image_etiqueta}
-                source={require("../../assets/images/hamburguesas.png")}
+                source={require("../../assets/images/hamburguesas.svg")}
               ></Image>
               <Text style={style.text_etiqueta}>Cena</Text>
             </TouchableOpacity>
