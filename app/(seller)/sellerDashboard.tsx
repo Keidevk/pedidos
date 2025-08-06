@@ -91,8 +91,6 @@ export default function MenuPrincipal() {
   }, []);
 
   const SelectorCategorias = () => {
-    const [categoriaSeleccionada, setCategoriaSeleccionada] =
-      useState<string>("");
     const [categorias, setCategorias] = useState<
       { id: string; nombre: string; icono?: string }[]
     >([]);
@@ -116,58 +114,30 @@ export default function MenuPrincipal() {
     return (
       <View style={{ marginVertical: 20 }}>
         <Text style={{ fontSize: 16, fontWeight: "600", marginBottom: 10 }}>
-          Selecciona una categoría
+          Categorías disponibles:
         </Text>
 
-        <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 10 }}>
+        <View style={{ flexWrap: "wrap", flexDirection: "row", gap: 8 }}>
           {categorias.length > 0 ? (
-            categorias.map(({ id, nombre, icono }) => {
-              const seleccionada = id === categoriaSeleccionada;
-              return (
-                <TouchableOpacity
-                  key={id}
-                  onPress={() => setCategoriaSeleccionada(id)}
-                  style={{
-                    paddingVertical: 10,
-                    paddingHorizontal: 12,
-                    borderRadius: 6,
-                    backgroundColor: seleccionada ? "#003366" : "#E0E0E0",
-                    flexDirection: "row",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    gap: 8,
-                    minWidth: 100,
-                  }}
-                >
-                  <View
-                    style={{
-                      flexDirection: "row",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      flex: 1,
-                    }}
-                  >
-                    {/* {icono && (
-                      <Image
-                        source={{ uri: icono }}
-                        style={{ width: 20, height: 20, borderRadius: 4 }}
-                      />
-                    )} */}
-                    <Text
-                      style={{
-                        color: seleccionada ? "#fff" : "#000",
-                        textAlign: "center",
-                        flexShrink: 1,
-                      }}
-                    >
-                      {nombre}
-                    </Text>
-                  </View>
-                </TouchableOpacity>
-              );
-            })
+            categorias.map(({ id, nombre }) => (
+              <Text
+                key={id}
+                style={{
+                  backgroundColor: "#F4F4F4",
+                  paddingHorizontal: 10,
+                  paddingVertical: 6,
+                  borderRadius: 6,
+                  fontSize: 14,
+                  fontFamily: "Inter_400Regular",
+                }}
+              >
+                {nombre}
+              </Text>
+            ))
           ) : (
-            <Text style={{ color: "#888" }}>No se encontraron categorías.</Text>
+            <Text style={{ color: "#888" }}>
+              No hay categorías disponibles.
+            </Text>
           )}
         </View>
       </View>
