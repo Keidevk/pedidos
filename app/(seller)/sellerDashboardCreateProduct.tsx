@@ -5,7 +5,7 @@ import {
   Inter_700Bold,
   useFonts,
 } from "@expo-google-fonts/inter";
-import * as FileSystem from 'expo-file-system';
+import * as FileSystem from "expo-file-system";
 import { Image } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
 
@@ -17,7 +17,7 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  View
+  View,
 } from "react-native";
 import { getItem } from "../utils";
 
@@ -47,7 +47,7 @@ export default function MenuPrincipal() {
     Inter_400Regular,
     Inter_700Bold,
   });
-  const [userId,setUserId] = useState('')
+  const [userId, setUserId] = useState("");
   const [categorias, setCategorias] = useState<Categoria[]>([]);
   const [categoriaSeleccionada, setCategoriaSeleccionada] = useState("");
   const [imagenes, setImagenes] = useState<ImagePicker.ImagePickerAsset[]>([]);
@@ -60,31 +60,20 @@ export default function MenuPrincipal() {
     tiempoEstimado: "",
   });
 
-  async function handleCreateProduct(){
-    // const response = await fetch(`${process.env.EXPO_PUBLIC_HOST}/`)
-    // console.log(formData);
-    // console.log(categoriaSeleccionada);
-    getItem('@userId',setUserId)
-    
-    const NewformData = new FormData();
+  async function handleCreateProduct() {
+    getItem("@userId", setUserId);
 
-    // Campos del producto
+    const NewformData = new FormData();
     NewformData.append("nombre", formData.nombre);
     NewformData.append("descripcion", formData.descripcion);
     NewformData.append("precio", formData.precio.toString());
     NewformData.append("stock_actual", formData.stock.toString());
-    NewformData.append("stock_minimo",'5')
-    // NewformData.append("tiempoEstimado", formData.tiempoEstimado);
-    NewformData.append("tiendaId",userId);
-    // Categoría seleccionada
+    NewformData.append("stock_minimo", "5");
+    NewformData.append("tiendaId", userId);
     NewformData.append("categoriaId", categoriaSeleccionada);
-      
-    // Imágenes
 
     for (let i = 0; i < imagenes.length; i++) {
       const imagen = imagenes[i];
-
-      // Lee el contenido como blob
       const fileUri = imagen.uri;
       const fileInfo = await FileSystem.getInfoAsync(fileUri);
       const fileBlob = {
@@ -92,21 +81,37 @@ export default function MenuPrincipal() {
         name: `imagen-${i}.png`,
         type: "image/png",
       };
-
       NewformData.append("file", fileBlob as any);
     }
-    console.log(NewformData)
+
     fetch(`${process.env.EXPO_PUBLIC_HOST}/api/product/register`, {
       method: "POST",
-      body: NewformData,})
-    .then(res => res.json())
-    .then(data => {
-      console.log("Producto creado:", data);
+      body: NewformData,
     })
-    .catch(err => {
-      console.error("Error al crear producto:", err);
-    });
-
+      .then((res) => res.json())
+      .then((data) => {
+        if (data?.code === 200 || data?.status === "success") {
+          console.log("✅ Producto creado:", data);
+          Alert.alert(
+            "Producto añadido",
+            "Tu producto fue registrado exitosamente."
+          );
+          router.replace("/(seller)/sellerDashboardProducts"); // ⬅️ Refetch forzado
+        } else {
+          console.warn("❌ Respuesta inesperada:", data);
+          Alert.alert(
+            "Error al registrar",
+            "La respuesta del servidor no fue válida."
+          );
+        }
+      })
+      .catch((err) => {
+        console.error("⛔ Error de red al crear producto:", err);
+        Alert.alert(
+          "Conexión fallida",
+          "No se pudo contactar con el servidor."
+        );
+      });
   }
 
   // const CATEGORIAS = [
@@ -126,7 +131,6 @@ export default function MenuPrincipal() {
   };
 
   const AdjuntarFotos = () => {
-
     const seleccionarImagenes = async () => {
       if (imagenes.length >= 1) {
         Alert.alert(
@@ -144,7 +148,7 @@ export default function MenuPrincipal() {
 
       if (!resultado.canceled && resultado.assets) {
         const nuevasUris = resultado.assets.map((asset) => asset);
-        const imagenesReales = resultado.assets.map(item=>item)
+        const imagenesReales = resultado.assets.map((item) => item);
         const total = imagenes.length + nuevasUris.length;
 
         const permitidas =
@@ -156,7 +160,7 @@ export default function MenuPrincipal() {
             `Solo puedes agregar ${5 - imagenes.length} más.`
           );
         }
-        console.log(imagenesReales)
+        console.log(imagenesReales);
         setImagenes((prev) => [...prev, ...permitidas]);
       }
     };
@@ -166,28 +170,45 @@ export default function MenuPrincipal() {
     };
 
     return (
-      <View style={{ flex: 1 ,flexDirection:'row' }}>
-        <TouchableOpacity style={{borderStyle:'dashed',borderColor:'#E8EAED',borderWidth:1,height:100,width:100}} onPress={seleccionarImagenes}>
-          <View style={{margin:'auto'}}>
-            <Image 
-            source={require('../../assets/images/uploadimage.svg')}
-            style={{width:42,height:42}}
+      <View style={{ flex: 1, flexDirection: "row" }}>
+        <TouchableOpacity
+          style={{
+            borderStyle: "dashed",
+            borderColor: "#E8EAED",
+            borderWidth: 1,
+            height: 100,
+            width: 100,
+          }}
+          onPress={seleccionarImagenes}
+        >
+          <View style={{ margin: "auto" }}>
+            <Image
+              source={require("../../assets/images/uploadimage.svg")}
+              style={{ width: 42, height: 42 }}
             />
-            <Text style={{color:'#9C9BA6'}}>Añadir</Text>
-          </View>          
+            <Text style={{ color: "#9C9BA6" }}>Añadir</Text>
+          </View>
         </TouchableOpacity>
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
           {imagenes.map((item, index) => (
-            <View key={index} style={{marginHorizontal:5}}>
+            <View key={index} style={{ marginHorizontal: 5 }}>
               <Image
-                source={{uri: item.uri}}
+                source={{ uri: item.uri }}
                 style={{ width: 100, height: 100, borderRadius: 8 }}
               />
               <View>
-                <TouchableOpacity style={{position:'relative',top:-71,right:-25,zIndex:100}} onPress={() => eliminarImagen(item.uri)} >
+                <TouchableOpacity
+                  style={{
+                    position: "relative",
+                    top: -71,
+                    right: -25,
+                    zIndex: 100,
+                  }}
+                  onPress={() => eliminarImagen(item.uri)}
+                >
                   <Image
-                  source={require('../../assets/images/delete-32-regular.svg')}
-                  style={{height:42,width:42}}
+                    source={require("../../assets/images/delete-32-regular.svg")}
+                    style={{ height: 42, width: 42 }}
                   />
                 </TouchableOpacity>
                 {/* ✅ FIX */}
@@ -197,7 +218,7 @@ export default function MenuPrincipal() {
         </ScrollView>
       </View>
     );
-  }
+  };
 
   const SelectorCategorias = () => {
     useEffect(() => {
@@ -236,7 +257,7 @@ export default function MenuPrincipal() {
                     paddingVertical: 10,
                     paddingHorizontal: 12,
                     borderRadius: 6,
-                    borderWidth:1,
+                    borderWidth: 1,
                     borderColor: seleccionada ? "#D61355" : "#E6E6E6",
                     flexDirection: "row",
                     alignItems: "center",
@@ -261,7 +282,7 @@ export default function MenuPrincipal() {
                     )} */}
                     <Text
                       style={{
-                        color:seleccionada ? "#D61355":"#1A1A1A",
+                        color: seleccionada ? "#D61355" : "#1A1A1A",
                         textAlign: "center",
                         flexShrink: 1,
                       }}
@@ -291,7 +312,7 @@ export default function MenuPrincipal() {
       <View style={{ gap: 25, paddingBottom: 40 }}>
         <TouchableOpacity
           style={{ flexDirection: "row", gap: 10, alignItems: "center" }}
-          onPress={() => router.navigate("/(seller)/sellerDashboard")}
+          onPress={() => router.replace("/(seller)/sellerDashboardProducts")}
         >
           <View
             style={{
@@ -352,77 +373,87 @@ export default function MenuPrincipal() {
             </Text>
             <AdjuntarFotos />
           </View>
-        <View style={{flexDirection:'row',alignItems:'center',justifyContent:'space-between',}}>
-          <View style={{width:70, gap: 30 }}>
-            <Text
-              style={{
-                fontFamily: "Inter_400Regular",
-                textTransform: "uppercase",
-              }}
-            >
-              Precio
-            </Text>
-            <TextInput
-              style={{
-                borderWidth: 1,
-                borderColor: "#E8EAED",
-                padding: 10,
-                borderRadius: 5,
-              }}
-              value={String(formData.precio)}
-              onChangeText={(text) => handleChange("precio", Number(text) || 0)}
-              keyboardType="numeric"
-              placeholder="Bs."
-            />
-          </View>
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "space-between",
+            }}
+          >
+            <View style={{ width: 70, gap: 30 }}>
+              <Text
+                style={{
+                  fontFamily: "Inter_400Regular",
+                  textTransform: "uppercase",
+                }}
+              >
+                Precio
+              </Text>
+              <TextInput
+                style={{
+                  borderWidth: 1,
+                  borderColor: "#E8EAED",
+                  padding: 10,
+                  borderRadius: 5,
+                }}
+                value={String(formData.precio)}
+                onChangeText={(text) =>
+                  handleChange("precio", Number(text) || 0)
+                }
+                keyboardType="numeric"
+                placeholder="Bs."
+              />
+            </View>
 
-          <View style={{width:70,gap: 16 }}>
-            <Text
-              style={{
-                fontFamily: "Inter_400Regular",
-                textTransform: "uppercase",
-              }}
-            >
-              Stock inicial
-            </Text>
-            <TextInput
-              style={{
-                borderWidth: 1,
-                borderColor: "#E8EAED",
-                padding: 10,
-                borderRadius: 5,
-              }}
-              value={String(formData.stock)}
-              onChangeText={(text) => handleChange("stock", Number(text) || 0)}
-              keyboardType="numeric"
-              placeholder="Ej. 5"
-            />
-          </View>
+            <View style={{ width: 70, gap: 16 }}>
+              <Text
+                style={{
+                  fontFamily: "Inter_400Regular",
+                  textTransform: "uppercase",
+                }}
+              >
+                Stock inicial
+              </Text>
+              <TextInput
+                style={{
+                  borderWidth: 1,
+                  borderColor: "#E8EAED",
+                  padding: 10,
+                  borderRadius: 5,
+                }}
+                value={String(formData.stock)}
+                onChangeText={(text) =>
+                  handleChange("stock", Number(text) || 0)
+                }
+                keyboardType="numeric"
+                placeholder="Ej. 5"
+              />
+            </View>
 
-          <View style={{width:80, gap: 16 }}>
-            <Text
-              style={{
-                fontFamily: "Inter_400Regular",
-                textTransform: "uppercase",
-              }}
-            >
-              Tiempo estimado
-            </Text>
-            <TextInput
-              style={{
-                borderWidth: 1,
-                borderColor: "#E8EAED",
-                padding: 10,
-                borderRadius: 5,
-              }}
-              value={formData.tiempoEstimado}
-              onChangeText={(text) => handleChange("tiempoEstimado", text)}
-              placeholder="Ej. 20 min"
-            />
+            <View style={{ width: 80, gap: 16 }}>
+              <Text
+                style={{
+                  fontFamily: "Inter_400Regular",
+                  textTransform: "uppercase",
+                }}
+              >
+                Tiempo estimado
+              </Text>
+              <TextInput
+                style={{
+                  borderWidth: 1,
+                  borderColor: "#E8EAED",
+                  padding: 10,
+                  borderRadius: 5,
+                }}
+                value={formData.tiempoEstimado}
+                onChangeText={(text) => handleChange("tiempoEstimado", text)}
+                placeholder="Ej. 20 min"
+              />
+            </View>
           </View>
         </View>
-        </View>
-         <View style={{ gap: 16 }}>
+        <View style={{ gap: 16 }}>
           <Text
             style={{
               fontFamily: "Inter_400Regular",
@@ -457,10 +488,26 @@ export default function MenuPrincipal() {
           <SelectorCategorias />
         </View>
 
-        <TouchableOpacity onPress={handleCreateProduct} style={{backgroundColor:'#E94B64',paddingVertical:10,borderRadius:10}}>
-          <Text style={{fontSize:18,fontFamily:'Inter_600SemiBold',color:'white',textAlign:'center'}}>Añadir Al Catálago</Text>
+        <TouchableOpacity
+          onPress={handleCreateProduct}
+          style={{
+            backgroundColor: "#E94B64",
+            paddingVertical: 10,
+            borderRadius: 10,
+          }}
+        >
+          <Text
+            style={{
+              fontSize: 18,
+              fontFamily: "Inter_600SemiBold",
+              color: "white",
+              textAlign: "center",
+            }}
+          >
+            Añadir Al Catálago
+          </Text>
         </TouchableOpacity>
-        
+
         {/* <View style={{ gap: 16 }}>
           <Text
             style={{
