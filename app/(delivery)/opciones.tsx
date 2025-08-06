@@ -118,11 +118,11 @@ export default function Home() {
     }
 
     const jsonPayload = {
-      "tipoVehiculo": vehiculoEditable.tipoVehiculo,
-      "licencia": vehiculoEditable.licencia,
-      "descripcion": vehiculoEditable.descripcion,
-      "rating": vehiculoEditable.rating,
-      "disponibilidad": vehiculoEditable.disponibilidad,
+      tipoVehiculo: vehiculoEditable.tipoVehiculo,
+      licencia: vehiculoEditable.licencia,
+      descripcion: vehiculoEditable.descripcion,
+      rating: vehiculoEditable.rating,
+      disponibilidad: vehiculoEditable.disponibilidad,
     };
 
     fetch(`${process.env.EXPO_PUBLIC_HOST}/api/delivery/update/${userId}`, {
@@ -488,26 +488,54 @@ export default function Home() {
                 Tipo
               </Text>
 
-              <TextInput
-                style={{
-                  textTransform: "uppercase",
-                  width: 100,
-                  textAlign: "center",
-                }}
-                value={
-                  vehiculoEditable?.tipoVehiculo === ""
-                    ? `NO REGISTRADO`
-                    : `${vehiculoEditable?.tipoVehiculo.toLocaleUpperCase()}`
-                }
-                onChangeText={(text) =>
-                  setVehiculoEditable(
-                    (prev) => prev && { ...prev, tipoVehiculo: text }
-                  )
-                }
-                editable={editandoVehiculo}
-                multiline
-              />
+              {editandoVehiculo ? (
+                <RNPickerSelect
+                  value={vehiculoEditable?.tipoVehiculo}
+                  onValueChange={(value) =>
+                    setVehiculoEditable(
+                      (prev) => prev && { ...prev, tipoVehiculo: value }
+                    )
+                  }
+                  items={vehiculoOptions}
+                  placeholder={{ label: "Selecciona...", value: null }}
+                  style={{
+                    inputIOS: {
+                      fontSize: 14,
+                      textTransform: "uppercase",
+                      textAlign: "center",
+                      width: 100,
+                      borderWidth: 1,
+                      borderColor: "#E0E0E0",
+                      borderRadius: 8,
+                      padding: 10,
+                    },
+                    inputAndroid: {
+                      fontSize: 14,
+                      textTransform: "uppercase",
+                      textAlign: "center",
+                      width: 100,
+                      borderWidth: 1,
+                      borderColor: "#E0E0E0",
+                      borderRadius: 8,
+                      padding: 10,
+                    },
+                  }}
+                />
+              ) : (
+                <Text
+                  style={{
+                    textTransform: "uppercase",
+                    width: 100,
+                    textAlign: "center",
+                  }}
+                >
+                  {vehiculoEditable?.tipoVehiculo === ""
+                    ? "NO REGISTRADO"
+                    : vehiculoEditable?.tipoVehiculo.toUpperCase()}
+                </Text>
+              )}
             </View>
+
             <View
               style={{
                 flexDirection: "row",
@@ -611,7 +639,7 @@ export default function Home() {
           </View>
         </View>
         <TouchableOpacity
-          onPress={()=>router.push({pathname:'/'})}
+          onPress={() => router.push({ pathname: "/" })}
           style={{
             flexDirection: "row",
             alignItems: "center",
