@@ -15,6 +15,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import RNPickerSelect from "react-native-picker-select";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { getItem } from "../utils";
 
@@ -45,6 +46,13 @@ export default function Home() {
   });
   const insets = useSafeAreaInsets();
   const [userId, setUserId] = useState<string>();
+
+  // fuera del componente:
+  const vehiculoOptions = [
+    { label: "Moto", value: "moto" },
+    { label: "Bicicleta", value: "bicicleta" },
+    { label: "Automóvil", value: "automovil" },
+  ];
 
   const [data, setData] = useState<Repartidor | null>(null);
   const [loading, setLoading] = useState(true);
@@ -259,7 +267,7 @@ export default function Home() {
           <Text style={{ textTransform: "uppercase" }}>
             Información personal
           </Text>
-          <View
+          <ScrollView
             style={{
               borderWidth: 1,
               borderColor: "#E0E0E0",
@@ -279,25 +287,6 @@ export default function Home() {
                 alignItems: "center",
               }}
             >
-              <View
-                style={{
-                  backgroundColor: "#EEEEEE",
-                  padding: 10,
-                  borderRadius: 30,
-                  width: 32,
-                  height: 32,
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
-                <Image
-                  source={require("../../assets/images/delivery-profile-papers-icon.svg")}
-                  style={{
-                    height: 21,
-                    width: 18,
-                  }}
-                />
-              </View>
               <Text
                 style={{
                   textTransform: "uppercase",
@@ -306,12 +295,57 @@ export default function Home() {
                   width: 100,
                 }}
               >
-                Nombre
+                Tipo
               </Text>
-              <Text style={{ textTransform: "uppercase", width: 100 }}>
-                {`${data.nombre} ${data.apellido}`}
-              </Text>
+
+              {editandoVehiculo ? (
+                <RNPickerSelect
+                  value={vehiculoEditable?.tipoVehiculo}
+                  onValueChange={(value) =>
+                    setVehiculoEditable(
+                      (prev) => prev && { ...prev, tipoVehiculo: value }
+                    )
+                  }
+                  items={vehiculoOptions}
+                  placeholder={{ label: "Selecciona...", value: null }}
+                  style={{
+                    inputIOS: {
+                      fontSize: 14,
+                      textTransform: "uppercase",
+                      textAlign: "center",
+                      width: 100,
+                      borderWidth: 1,
+                      borderColor: "#E0E0E0",
+                      borderRadius: 8,
+                      padding: 10,
+                    },
+                    inputAndroid: {
+                      fontSize: 14,
+                      textTransform: "uppercase",
+                      textAlign: "center",
+                      width: 100,
+                      borderWidth: 1,
+                      borderColor: "#E0E0E0",
+                      borderRadius: 8,
+                      padding: 10,
+                    },
+                  }}
+                />
+              ) : (
+                <Text
+                  style={{
+                    textTransform: "uppercase",
+                    width: 100,
+                    textAlign: "center",
+                  }}
+                >
+                  {vehiculoEditable?.tipoVehiculo === ""
+                    ? "NO REGISTRADO"
+                    : vehiculoEditable?.tipoVehiculo.toUpperCase()}
+                </Text>
+              )}
             </View>
+
             <View
               style={{
                 flexDirection: "row",
@@ -394,7 +428,7 @@ export default function Home() {
                 {`${data.telefono}`}
               </Text>
             </View>
-          </View>
+          </ScrollView>
         </View>
         <View style={{ width: "100%", gap: 10 }}>
           <Text style={{ textTransform: "uppercase" }}>
