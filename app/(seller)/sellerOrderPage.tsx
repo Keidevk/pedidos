@@ -101,6 +101,17 @@ export default function MenuPrincipal() {
     });
   }, []);
 
+  useEffect(() => {
+    const intervalo = setInterval(() => {
+      if (Array.isArray(deliverys) && deliverys.length === 0) {
+        console.log("🔄 No hay deliverys disponibles. Forzando refetch...");
+        refetchDeliverys();
+      }
+    }, 120000); // ⏱️ Cada 2 minutos (120,000 ms)
+
+    return () => clearInterval(intervalo); // ⛑️ Limpieza al desmontar
+  }, [deliverys]);
+
   const pedidosFiltrados = pedidos.filter(
     (p) => agruparEstado(p.estado) === filtro
   );
@@ -600,10 +611,10 @@ export default function MenuPrincipal() {
                         <Text
                           style={{ textAlign: "center", fontStyle: "italic" }}
                         >
-                          No hay repartidores disponibles.
+                          Buscando repartidores disponibles...
                         </Text>
                       )}
-                      {!mostrarModalDelivery && (
+                      {filtro === "activa" && !mostrarModalDelivery && (
                         <TouchableOpacity
                           style={{
                             backgroundColor: "#E94B64",
