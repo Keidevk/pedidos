@@ -38,13 +38,33 @@ export default function ShopProfile() {
     Inter_400Regular,
     Inter_700Bold,
   });
-  
+
   const insets = useSafeAreaInsets();
   const [shopId, setShopId] = useState<string>();
   const [data, setData] = useState<Tienda | null>(null);
   const [loading, setLoading] = useState(true);
   const [editando, setEditando] = useState(false);
   const [tiendaEditable, setTiendaEditable] = useState<Tienda | null>(null);
+
+  const cargarPerfilTienda = (id: string) => {
+    const url = `${process.env.EXPO_PUBLIC_HOST}/api/shop/userid/${id}`;
+    console.log("🔄 Refetch tienda desde:", url);
+
+    fetch(url)
+      .then(async (res) => {
+        const texto = await res.text();
+        try {
+          const json = JSON.parse(texto);
+          if (json) {
+            setData(json);
+            setTiendaEditable(json);
+          }
+        } catch (error) {
+          console.error("💥 Error al parsear JSON:", error);
+        }
+      })
+      .catch((err) => console.error("⛔ Error en refetch:", err));
+  };
 
   useEffect(() => {
     getItem("@userId", (id) => {
@@ -53,7 +73,7 @@ export default function ShopProfile() {
         return;
       }
       setShopId(id);
-      console.log(id)
+      console.log(id);
 
       const url = `${process.env.EXPO_PUBLIC_HOST}/api/shop/userid/${id}`;
       console.log("🔎 Haciendo fetch a:", url);
@@ -80,48 +100,46 @@ export default function ShopProfile() {
   }, []);
 
   const handleSubmit = () => {
-    if (!tiendaEditable) {
+    if (!tiendaEditable || !shopId) {
       alert("❌ No hay datos para guardar");
       return;
     }
 
     const jsonPayload = {
-      "nombre": tiendaEditable.nombre,
-      "descripcion": tiendaEditable.descripcion,
-      "ubicacion": tiendaEditable.ubicacion,
-      "horarioApertura": tiendaEditable.horarioApertura,
-      "horarioCierre": tiendaEditable.horarioCierre,
-      "tiempoEntregaPromedio": tiendaEditable.tiempoEntregaPromedio,
+      nombre: tiendaEditable.nombre,
+      descripcion: tiendaEditable.descripcion,
+      ubicacion: tiendaEditable.ubicacion,
+      horarioApertura: tiendaEditable.horarioApertura,
+      horarioCierre: tiendaEditable.horarioCierre,
+      tiempoEntregaPromedio: tiendaEditable.tiempoEntregaPromedio,
     };
 
-    console.log("📦 JSON para enviar:", JSON.stringify(jsonPayload));
-    
+    console.log("📤 JSON enviado:", JSON.stringify(jsonPayload));
+
     fetch(`${process.env.EXPO_PUBLIC_HOST}/api/shop/update/${shopId}`, {
       method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(jsonPayload),
     })
       .then(async (res) => {
         const response = await res.json();
         if (response.code === 200) {
           alert("✅ Perfil actualizado correctamente");
-          setData(tiendaEditable);
+          cargarPerfilTienda(shopId); // 👈 Refetch desde backend
           setEditando(false);
         } else {
           alert("❌ Error al actualizar el perfil");
         }
       })
       .catch((err) => {
-        console.error("Error al actualizar:", err);
+        console.error("⛔ Error al actualizar:", err);
         alert("⛔ Error al conectar con el servidor");
       });
   };
 
   if (loading) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
         <ActivityIndicator size="large" />
       </View>
     );
@@ -129,7 +147,7 @@ export default function ShopProfile() {
 
   if (!data) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
         <Text>No se pudo cargar el perfil de la tienda.</Text>
       </View>
     );
@@ -277,7 +295,13 @@ export default function ShopProfile() {
           </View>
 
           <View style={{ width: "115%", gap: 10 }}>
-            <Text style={{ textTransform: "uppercase", fontFamily: 'Inter_700Bold', textAlign: 'center' }}>
+            <Text
+              style={{
+                textTransform: "uppercase",
+                fontFamily: "Inter_700Bold",
+                textAlign: "center",
+              }}
+            >
               Información de la tienda
             </Text>
             <View
@@ -314,7 +338,9 @@ export default function ShopProfile() {
                 <TextInput
                   style={{
                     width: 200,
-                    fontFamily: editando ? "Inter_400Regular" : "Inter_300Light",
+                    fontFamily: editando
+                      ? "Inter_400Regular"
+                      : "Inter_300Light",
                     padding: 8,
                     // borderWidth: editando ? 1 : 0,
                     // borderColor: editando ? "#E0E0E0" : "transparent",
@@ -352,13 +378,15 @@ export default function ShopProfile() {
                 <TextInput
                   style={{
                     width: 200,
-                    fontFamily: editando ? "Inter_400Regular" : "Inter_300Light",
+                    fontFamily: editando
+                      ? "Inter_400Regular"
+                      : "Inter_300Light",
                     padding: 8,
                     // borderWidth: editando ? 1 : 0,
                     // borderColor: editando ? "#E0E0E0" : "transparent",
                     borderRadius: 5,
                     minHeight: 80,
-                    textAlignVertical: 'top',
+                    textAlignVertical: "top",
                   }}
                   value={tiendaEditable?.descripcion || ""}
                   onChangeText={(text) =>
@@ -393,7 +421,9 @@ export default function ShopProfile() {
                 <TextInput
                   style={{
                     width: 200,
-                    fontFamily: editando ? "Inter_400Regular" : "Inter_300Light",
+                    fontFamily: editando
+                      ? "Inter_400Regular"
+                      : "Inter_300Light",
                     padding: 8,
                     // borderWidth: editando ? 1 : 0,
                     // borderColor: editando ? "#E0E0E0" : "transparent",
@@ -431,7 +461,9 @@ export default function ShopProfile() {
                 <TextInput
                   style={{
                     width: 200,
-                    fontFamily: editando ? "Inter_400Regular" : "Inter_300Light",
+                    fontFamily: editando
+                      ? "Inter_400Regular"
+                      : "Inter_300Light",
                     padding: 8,
                     // borderWidth: editando ? 1 : 0,
                     // borderColor: editando ? "#E0E0E0" : "transparent",
@@ -470,7 +502,9 @@ export default function ShopProfile() {
                 <TextInput
                   style={{
                     width: 200,
-                    fontFamily: editando ? "Inter_400Regular" : "Inter_300Light",
+                    fontFamily: editando
+                      ? "Inter_400Regular"
+                      : "Inter_300Light",
                     padding: 8,
                     // borderWidth: editando ? 1 : 0,
                     // borderColor: editando ? "#E0E0E0" : "transparent",
@@ -509,16 +543,24 @@ export default function ShopProfile() {
                 <TextInput
                   style={{
                     width: 200,
-                    fontFamily: editando ? "Inter_400Regular" : "Inter_300Light",
+                    fontFamily: editando
+                      ? "Inter_400Regular"
+                      : "Inter_300Light",
                     padding: 8,
                     // borderWidth: editando ? 1 : 0,
                     // borderColor: editando ? "#E0E0E0" : "transparent",
                     borderRadius: 5,
                   }}
-                  value={tiendaEditable?.tiempoEntregaPromedio?.toString() || ""}
+                  value={
+                    tiendaEditable?.tiempoEntregaPromedio?.toString() || ""
+                  }
                   onChangeText={(text) =>
                     setTiendaEditable(
-                      (prev) => prev && { ...prev, tiempoEntregaPromedio: parseInt(text) || 0 }
+                      (prev) =>
+                        prev && {
+                          ...prev,
+                          tiempoEntregaPromedio: parseInt(text) || 0,
+                        }
                     )
                   }
                   editable={editando}
@@ -554,9 +596,9 @@ export default function ShopProfile() {
               )}
             </View>
           </View>
-          
+
           <TouchableOpacity
-            onPress={() => router.push({ pathname: '/' })}
+            onPress={() => router.push({ pathname: "/" })}
             style={{
               flexDirection: "row",
               alignItems: "center",
