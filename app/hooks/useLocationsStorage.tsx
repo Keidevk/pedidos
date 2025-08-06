@@ -17,20 +17,39 @@ type UseLocationsStorageResult = {
   reload: () => Promise<void>;
 };
 
-const STORAGE_KEY = 'LOCATIONS_LIST';
+const STORAGE_KEY_PREFIX = 'USER_LOCATIONS_';
 
 export const useLocationsStorage = (): UseLocationsStorageResult => {
   const [locations, setLocations] = useState<Location[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const [userId, setUserId] = useState<string | null>(null);
 
   useEffect(() => {
-    loadLocations();
+    const initialize = async () => {
+      try {
+        // Obtener el userId de AsyncStorage
+        const storedUserId = await AsyncStorage.getItem('@userId');
+        if (storedUserId) {
+          setUserId(storedUserId);
+          await loadLocations(storedUserId);
+        } else {
+          setLoading(false);
+          console.warn('No se encontró userId en AsyncStorage');
+        }
+      } catch (error) {
+        console.error('Error obteniendo userId:', error);
+        setLoading(false);
+      }
+    };
+    
+    initialize();
   }, []);
 
-  const loadLocations = async (): Promise<void> => {
+  const loadLocations = async (currentUserId: string): Promise<void> => {
     try {
       setLoading(true);
-      const stored = await AsyncStorage.getItem(STORAGE_KEY);
+      const storageKey = `${STORAGE_KEY_PREFIX}${currentUserId}`;
+      const stored = await AsyncStorage.getItem(storageKey);
       const parsed: Location[] = stored ? JSON.parse(stored) : [];
       setLocations(parsed);
     } catch (error) {
@@ -41,21 +60,36 @@ export const useLocationsStorage = (): UseLocationsStorageResult => {
   };
 
   const saveLocation = async (newLocation: Location): Promise<void> => {
+    if (!userId) {
+      console.error('No se puede guardar ubicación: userId no definido');
+      return;
+    }
+    
     try {
+      const storageKey = `${STORAGE_KEY_PREFIX}${userId}`;
       const updated = [...locations, newLocation];
-      await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+      await AsyncStorage.setItem(storageKey, JSON.stringify(updated));
       setLocations(updated);
     } catch (error) {
       console.error('Error guardando ubicación:', error);
     }
   };
 
+  // Resto de las funciones (updateLocation, getLocationById) deben ser modificadas similarmente
+  // para usar el userId interno
+
   const updateLocation = async (id: string, updatedData: Partial<Location>): Promise<void> => {
+    if (!userId) {
+      console.error('No se puede actualizar ubicación: userId no definido');
+      return;
+    }
+    
     try {
+      const storageKey = `${STORAGE_KEY_PREFIX}${userId}`;
       const updated = locations.map(loc =>
         loc.id === id ? { ...loc, ...updatedData } : loc
       );
-      await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+      await AsyncStorage.setItem(storageKey, JSON.stringify(updated));
       setLocations(updated);
     } catch (error) {
       console.error('Error actualizando ubicación:', error);
@@ -66,12 +100,18 @@ export const useLocationsStorage = (): UseLocationsStorageResult => {
     return locations.find(loc => loc.id === id);
   };
 
+  const reload = async (): Promise<void> => {
+    if (userId) {
+      await loadLocations(userId);
+    }
+  };
+
   return {
     locations,
     loading,
     saveLocation,
     updateLocation,
     getLocationById,
-    reload: loadLocations
+    reload
   };
 };

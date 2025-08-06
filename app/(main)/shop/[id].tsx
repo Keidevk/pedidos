@@ -1,22 +1,25 @@
+import { CarritoItem } from "@/app/types";
+import { getItem } from "@/app/utils";
 import { Inter_300Light, Inter_400Regular, Inter_600SemiBold } from "@expo-google-fonts/inter";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFonts } from "expo-font";
 import { Image } from "expo-image";
 import { router, useLocalSearchParams } from "expo-router";
-import { Dispatch, useEffect, useState } from "react";
-import { ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { useEffect, useState } from "react";
+import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 interface Tienda {
   id: string;
-  userId:number;
+  userId: number;
   nombre: string;
   descripcion: string;
   ubicacion: string;
-  horarioApertura: string; // ISO 8601 format
-  horarioCierre: string;   // ISO 8601 format
-  tiempoEntregaPromedio: number; // en horas
-  costoEnvio: string; // podría cambiar a number si se prefiere precisión decimal
-  rating: string;     // lo mismo aquí si planeas hacer cálculos, puede convertirse a number
+  horarioApertura: string;
+  horarioCierre: string;
+  tiempoEntregaPromedio: number;
+  costoEnvio: string;
+  rating: string;
   fotosTienda: string[];
 }
 
@@ -35,114 +38,265 @@ interface Producto {
   destacado: boolean;
 }
 
-type CarritoItem = {
-  productoId: string;
-  cantidad: number;
-  tiendaId:string;
-};
-type carshopping = {
-  productoId:number,
-  cantidad:number
+// Funciones de servicio separadas
+async function fetchShopProducts(id: string | string[]): Promise<Producto[]> {
+  const response = await fetch(`${process.env.EXPO_PUBLIC_HOST}/api/product/getproducts/${id}`);
+  if (!response.ok) throw new Error("Error al obtener productos");
+  return await response.json();
 }
 
-async function getShopProducts(id:string|string[],setState:Dispatch<Producto[]>){
-    const response = await fetch(`${process.env.EXPO_PUBLIC_HOST}/api/product/getproducts/${id}`)
-    const data = await response.json()
-    setState(data)
+async function fetchShopData(id: string | string[]): Promise<Tienda> {
+  const response = await fetch(`${process.env.EXPO_PUBLIC_HOST}/api/shop/${id}`);
+  if (!response.ok) throw new Error("Error al obtener datos de tienda");
+  return await response.json();
 }
 
-async function getShopData(id:string|string[],setState:Dispatch<Tienda>){
-    const response = await fetch(`${process.env.EXPO_PUBLIC_HOST}/api/shop/${id}`)
-    const data = await response.json()
-    setState(data)
-}
-
-function handlerProduct(id:number){
-  router.push({pathname:'/(main)/product/[id]',
-      params:{id}
-  })
-}
-
-export default function Shops(){
+export default function Shops() {
   const { id } = useLocalSearchParams();
-  // const insets = useSafeAreaInsets();
-  useFonts({Inter_600SemiBold,Inter_300Light,Inter_400Regular});
+  const insets = useSafeAreaInsets();
+  const [fontsLoaded] = useFonts({ Inter_600SemiBold, Inter_300Light, Inter_400Regular });
   
-  const [isLoading,setLoad] = useState(true)
-  const [shopData,setShopData] = useState<Tienda|null>(null)
-  const [productData,setProductData] = useState<Producto[]|null>(null)
-
-const agregarAlCarrito = async (
-  nuevoId: string,
-  tiendaId: string,
-) => {
-  try {
-    const carritoRaw = await AsyncStorage.getItem(`carrito_${tiendaId}`);
-    const carritoTienda: CarritoItem[] = carritoRaw ? JSON.parse(carritoRaw) : [];
-
-    const existe = carritoTienda.find(item => item.productoId === nuevoId);
-
-    let actualizado: CarritoItem[];
-
-    if (existe) {
-      actualizado = carritoTienda.map(item =>
-        item.productoId === nuevoId
-          ? { ...item, cantidad: item.cantidad + 1 }
-          : item
-      );
-    } else {
-      actualizado = [...carritoTienda, { productoId: nuevoId, cantidad: 1, tiendaId }];
-    }
-
-    await AsyncStorage.setItem(`carrito_${tiendaId}`, JSON.stringify(actualizado));
-    console.log('🛒 Producto agregado al carrito de tienda', tiendaId);
-  } catch (error) {
-    console.error('❌ Error en agregarAlCarrito:', error);
-  }
-};
+  const [isLoading, setLoading] = useState(true);
+  const [shopData, setShopData] = useState<Tienda | null>(null);
+  const [productData, setProductData] = useState<Producto[] | null>(null);
+  const [userId,setUserId] = useState(''); // Reemplazar con ID real del usuario
 
 
   useEffect(()=>{
-      getShopData(id,setShopData)
-      getShopProducts(id,setProductData)
-      setLoad(false)
-  },[isLoading,id])
-  if(isLoading){
-      return(<View><Text>Loading....</Text></View>)
+    getItem('@userId',setUserId)
+  },[])
+
+  // Función mejorada para agregar al carrito
+  const agregarAlCarrito = async (productoId: string, tiendaId: string) => {
+    try {
+      const carritoKey = `carrito_${userId}_${tiendaId}`;
+      const carritoRaw = await AsyncStorage.getItem(carritoKey);
+      const carritoActual: CarritoItem[] = carritoRaw ? JSON.parse(carritoRaw) : [];
+
+      const productoExistente = carritoActual.find(item => item.productoId === productoId);
+      const carritoActualizado = productoExistente
+        ? carritoActual.map(item =>
+            item.productoId === productoId
+              ? { ...item, cantidad: item.cantidad + 1 }
+              : item
+          )
+        : [...carritoActual, { 
+            productoId, 
+            cantidad: 1, 
+            tiendaId,
+            clienteId: userId 
+          }];
+
+      await AsyncStorage.setItem(carritoKey, JSON.stringify(carritoActualizado));
+      Alert.alert("Éxito", "Producto agregado al carrito");
+      console.log('🛒 Producto agregado:', { productoId, tiendaId });
+    } catch (error) {
+      console.error('❌ Error al agregar al carrito:', error);
+      Alert.alert("Error", "No se pudo agregar el producto al carrito");
+    }
+  };
+
+  const handlerProduct = (id: number) => {
+    router.push({ pathname: '/(main)/product/[id]', params: { id } });
+  };
+
+  // Carga inicial de datos
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        setLoading(true);
+        const [shop, products] = await Promise.all([
+          fetchShopData(id),
+          fetchShopProducts(id)
+        ]);
+        setShopData(shop);
+        setProductData(products);
+      } catch (error) {
+        console.error("Error loading data:", error);
+        Alert.alert("Error", "No se pudieron cargar los datos");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadData();
+  }, [id]);
+
+  if (!fontsLoaded || isLoading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <Text>Cargando...</Text>
+      </View>
+    );
   }
-  if(!shopData || !productData){
-      return(<View><Text>No cargo</Text></View>)
+
+  if (!shopData || !productData) {
+    return (
+      <View style={styles.errorContainer}>
+        <Text>No se pudieron cargar los datos de la tienda</Text>
+      </View>
+    );
   }
-  return(
-  <View>
-    <View style={{marginHorizontal:-20,backgroundColor:'#aaa',height:200,borderBottomEndRadius:20,borderBottomStartRadius:20}}></View>
-    <Text style={{paddingHorizontal:20,marginTop:10,fontSize:20,fontFamily:'Inter_600SemiBold'}}>{shopData.nombre}</Text>
-    <Text style={{paddingHorizontal:20,color:'#aaa',marginTop:10}}>{shopData.descripcion}</Text>
-    <Text style={{paddingHorizontal:20,fontFamily:'Inter_600SemiBold',marginTop:10,marginBottom:20}}>{shopData.ubicacion}</Text>
-    <ScrollView  showsVerticalScrollIndicator={false} contentContainerStyle={{backgroundColor:'#FF627B',paddingHorizontal:10,borderTopStartRadius:20,borderTopEndRadius:20,paddingLeft:10,paddingRight:10,paddingBottom:375,flexDirection:'row',flexWrap:'wrap'}}>
-        {productData.map((product,index)=>{
-        return(
-          <View key={index}>
-            <View style={{backgroundColor:'#ccc',height:90,width:125,borderRadius:10,marginHorizontal:10,position:'relative',bottom:-20,zIndex:100}}></View>
-          <TouchableOpacity onPress={()=>{handlerProduct(product.id)}}>
-          <View style={{marginRight:20,backgroundColor:'white',width:150,height:150,marginBottom:20,borderRadius:10,padding:5}}>
-            <View style={{marginTop:25}}>
-              <Text style={{fontFamily:'Inter_600SemiBold',height:35}}>{product.nombre}</Text>
-              <Text style={{fontFamily:'Inter_300Light'}}>{product.descripcion.length > 25 ? product.descripcion.substring(0, 25) + '...': product.descripcion}</Text>
-              <View style={{flexDirection:'row',marginTop:10,justifyContent:'flex-end'}}>
-                <Text style={{fontFamily:'Inter_600SemiBold',fontSize:16}}>${product.precio}</Text>
-                <TouchableOpacity onPress={()=>agregarAlCarrito(product.id.toString(),product.tiendaId.toString())} style={{flex: 1, justifyContent: 'center', alignItems: 'flex-end'}}>
-                  <Image
-                  style={{height:16,width:16}}
-                  source={require('../../../assets/images/Plus.svg')}
-                  ></Image>
-                </TouchableOpacity>
-              </View>
-            </View>
-          </View>
-          </TouchableOpacity>
-        </View>)})}
-    </ScrollView>
-  </View>)
-    
+
+  return (
+    <View style={styles.container}>
+      {/* Header de la tienda */}
+      <View style={styles.shopHeader}>
+        <View style={styles.shopImage} />
+        <Text style={styles.shopName}>{shopData.nombre}</Text>
+        <Text style={styles.shopDescription}>{shopData.descripcion}</Text>
+        <Text style={styles.shopLocation}>{shopData.ubicacion}</Text>
+      </View>
+
+      {/* Lista de productos */}
+      <ScrollView 
+        contentContainerStyle={styles.productsContainer}
+        showsVerticalScrollIndicator={false}
+      >
+        {productData.map((product, index) => (
+          <ProductCard 
+            key={index}
+            product={product}
+            onPress={() => handlerProduct(product.id)}
+            onAddToCart={() => agregarAlCarrito(product.id.toString(), product.tiendaId.toString())}
+          />
+        ))}
+      </ScrollView>
+    </View>
+  );
 }
+
+// Componente ProductCard separado para mejor organización
+const ProductCard = ({ 
+  product, 
+  onPress, 
+  onAddToCart 
+}: { 
+  product: Producto; 
+  onPress: () => void; 
+  onAddToCart: () => void;
+}) => (
+  <View style={styles.productCardContainer}>
+    <View style={styles.productImage} />
+    <TouchableOpacity onPress={onPress}>
+      <View style={styles.productDetails}>
+        <Text style={styles.productName}>{product.nombre}</Text>
+        <Text style={styles.productDescription}>
+          {product.descripcion.length > 25 
+            ? `${product.descripcion.substring(0, 25)}...` 
+            : product.descripcion}
+        </Text>
+        <View style={styles.productFooter}>
+          <Text style={styles.productPrice}>${product.precio}</Text>
+          <TouchableOpacity onPress={onAddToCart} style={styles.addButton}>
+            <Image
+              style={styles.addIcon}
+              source={require('../../../assets/images/Plus.svg')}
+            />
+          </TouchableOpacity>
+        </View>
+      </View>
+    </TouchableOpacity>
+  </View>
+);
+
+// Estilos organizados
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#fff',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  shopHeader: {
+    paddingHorizontal: 20,
+    marginBottom: 10,
+  },
+  shopImage: {
+    marginHorizontal: -20,
+    backgroundColor: '#aaa',
+    height: 200,
+    borderBottomEndRadius: 20,
+    borderBottomStartRadius: 20,
+  },
+  shopName: {
+    marginTop: 10,
+    fontSize: 20,
+    fontFamily: 'Inter_600SemiBold',
+  },
+  shopDescription: {
+    color: '#aaa',
+    marginTop: 10,
+  },
+  shopLocation: {
+    fontFamily: 'Inter_600SemiBold',
+    marginTop: 10,
+    marginBottom: 20,
+  },
+  productsContainer: {
+    backgroundColor: '#FF627B',
+    paddingHorizontal: 10,
+    borderTopStartRadius: 20,
+    borderTopEndRadius: 20,
+    paddingBottom: 50,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+  },
+  productCardContainer: {
+    marginBottom: 20,
+  },
+  productImage: {
+    backgroundColor: '#ccc',
+    height: 90,
+    width: 125,
+    borderRadius: 10,
+    marginHorizontal: 10,
+    position: 'relative',
+    bottom: -20,
+    zIndex: -100,
+  },
+  productDetails: {
+    position:'relative',
+    top:10,
+    zIndex:-100,
+    marginRight: 20,
+    backgroundColor: 'white',
+    width: 150,
+    height: 150,
+    borderRadius: 10,
+    padding: 5,
+  },
+  productName: {
+    fontFamily: 'Inter_600SemiBold',
+    height: 35,
+  },
+  productDescription: {
+    fontFamily: 'Inter_300Light',
+  },
+  productFooter: {
+    flexDirection: 'row',
+    marginTop: 10,
+    justifyContent: 'flex-end',
+  },
+  productPrice: {
+    fontFamily: 'Inter_600SemiBold',
+    fontSize: 16,
+  },
+  addButton: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'flex-end',
+  },
+  addIcon: {
+    height: 28,
+    width: 28,
+  },
+})
