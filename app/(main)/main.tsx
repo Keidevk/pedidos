@@ -135,7 +135,7 @@ export default function MenuPrincipal() {
               <Image
                 contentFit="cover"
                 style={style.image_etiqueta}
-                source={require("../../assets/images/tenedor.png")}
+                source={require("../../assets/images/tenedor.svg")}
               ></Image>
               <Text style={style.text_etiqueta}>Desayuno</Text>
             </TouchableOpacity>
