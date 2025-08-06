@@ -56,6 +56,14 @@ export default function MenuPrincipal() {
     }
   }, [shopId]);
 
+  useEffect(() => {
+    pedidos.forEach((pedido) => {
+      if (pedido.clienteId && !clientes[pedido.clienteId]) {
+        fetchCliente(pedido.clienteId);
+      }
+    });
+  }, [pedidos]);
+
   const estadosPedidos = [
     "pendiente",
     "recibido",
