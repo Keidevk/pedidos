@@ -39,7 +39,7 @@ export default function MenuPrincipal() {
   const [pedidoActualizado, setPedidoActualizado] = useState(["", ""]);
   const [totalOrders, setTotalOrders] = useState<number | null>(null);
 
-  const { pedidos, loading, error } = usePedidos(shopId || "");
+  const { pedidos, loading, error, refetchPedidos } = usePedidos(shopId || "");
   const { clientes, fetchCliente } = useClientes();
 
   useEffect(() => {
@@ -106,6 +106,7 @@ export default function MenuPrincipal() {
 
         const data = await res.json();
         console.log("✅ Pedido actualizado:", data);
+        await refetchPedidos(); // 👈 aquí refrescás la vista
         setModalVisible(false);
         setPedidoActualizado(["", ""]);
       } catch (err) {
@@ -237,14 +238,6 @@ export default function MenuPrincipal() {
                         justifyContent: "center",
                         borderRadius: 10,
                       }}
-                      onPress={() => {
-                        setPedidoSeleccionado(pedido);
-                        setModalVisible(true);
-
-                        if (!clientes[pedido.clienteId]) {
-                          fetchCliente(pedido.clienteId);
-                        }
-                      }}
                     >
                       {handlePedidoIcon(pedido.estado)}
                     </TouchableOpacity>
@@ -259,7 +252,14 @@ export default function MenuPrincipal() {
                         justifyContent: "center",
                         borderColor: "#D61355",
                       }}
-                      onPress={handleSubmit}
+                      onPress={() => {
+                        setPedidoSeleccionado(pedido);
+                        setModalVisible(true);
+                        setPedidoActualizado(["", ""]); // 👈 limpia el estado por si acaso
+                        if (!clientes[pedido.clienteId]) {
+                          fetchCliente(pedido.clienteId);
+                        }
+                      }}
                     >
                       <Text
                         style={{
@@ -268,9 +268,7 @@ export default function MenuPrincipal() {
                           fontSize: 13,
                         }}
                       >
-                        {pedidoActualizado[0] === pedido.id
-                          ? `Guardar`
-                          : `Actualizar`}
+                        Actualizar
                       </Text>
                     </TouchableOpacity>
                   </View>
@@ -282,7 +280,7 @@ export default function MenuPrincipal() {
       </View>
 
       <Modal
-        animationType="slide"
+        animationType="fade"
         transparent={true}
         visible={modalVisible}
         onRequestClose={() => setModalVisible(false)}
@@ -374,9 +372,29 @@ por $${pedidoSeleccionado.total}, actualmente: ${pedidoSeleccionado.estado}`}
                 No hay pedido seleccionado
               </Text>
             )}
+            {pedidoSeleccionado &&
+              pedidoActualizado[0] === pedidoSeleccionado.id &&
+              pedidoActualizado[1] !== pedidoSeleccionado.estado && (
+                <TouchableOpacity
+                  onPress={handleSubmit}
+                  style={{
+                    marginTop: 10,
+                    backgroundColor: "#E94B64",
+                    paddingVertical: 8,
+                    paddingHorizontal: 16,
+                    borderRadius: 8,
+                  }}
+                >
+                  <Text
+                    style={{ color: "#fff", fontFamily: "Inter_600SemiBold" }}
+                  >
+                    Guardar
+                  </Text>
+                </TouchableOpacity>
+              )}
 
             <TouchableOpacity onPress={() => setModalVisible(false)}>
-              <Text style={{ color: "#D61355", fontSize: 14, marginTop: 10 }}>
+              <Text style={{ color: "#E94B64", fontSize: 14, marginTop: 10 }}>
                 Cerrar
               </Text>
             </TouchableOpacity>
