@@ -119,10 +119,15 @@ export default function Home() {
       return;
     }
 
+    console.log(
+      "🆔 Enviando a:",
+      `${process.env.EXPO_PUBLIC_HOST}/api/delivery/update/${userId}`
+    );
+
     const jsonPayload = {
       tipoVehiculo: vehiculoEditable.tipoVehiculo,
       licencia: vehiculoEditable.licencia,
-      descripcion: vehiculoEditable.descripcion,
+      vehiculoDescripcion: vehiculoEditable.descripcion ?? "",
       rating: vehiculoEditable.rating,
       disponibilidad: vehiculoEditable.disponibilidad,
     };
@@ -133,21 +138,26 @@ export default function Home() {
         "Content-Type": "application/json",
       },
       body: JSON.stringify(jsonPayload),
-    })
-      .then(async (res) => {
-        const response = await res.json();
-        if (response.code === 200) {
+    }).then(async (res) => {
+      const text = await res.text();
+      console.log("🔍 Raw backend response:", text);
+
+      try {
+        const response = JSON.parse(text);
+        console.log("🧩 Parsed:", response);
+
+        if (response.code === 200 || response.status === "success") {
           alert("✅ Perfil actualizado correctamente");
           setData(response.data);
           setEditandoVehiculo(false);
         } else {
           alert("❌ Error al actualizar el perfil");
         }
-      })
-      .catch((err) => {
-        console.error("Error al actualizar:", err);
-        alert("⛔ Error al conectar con el servidor");
-      });
+      } catch (error) {
+        console.error("💥 Error al parsear respuesta:", error);
+        alert("❌ Respuesta inválida del servidor");
+      }
+    });
 
     console.log("📦 JSON para enviar:", JSON.stringify(jsonPayload));
     setEditandoVehiculo(!editandoVehiculo);
@@ -394,15 +404,18 @@ export default function Home() {
           <Text style={{ textTransform: "uppercase" }}>
             Información del vehículo
           </Text>
-          <View
+          <ScrollView
             style={{
               borderWidth: 1,
               borderColor: "#E0E0E0",
               borderRadius: 10,
               padding: 15,
+              width: "100%",
+              gap: 15,
+            }}
+            contentContainerStyle={{
               alignItems: "center",
               justifyContent: "center",
-              width: "100%",
               gap: 15,
             }}
           >
@@ -609,7 +622,7 @@ export default function Home() {
                 </Text>
               </View>
             </TouchableOpacity>
-          </View>
+          </ScrollView>
         </View>
         <TouchableOpacity
           onPress={() => router.push({ pathname: "/" })}
