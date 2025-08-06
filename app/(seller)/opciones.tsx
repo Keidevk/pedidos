@@ -10,6 +10,8 @@ import { router } from "expo-router";
 import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
   ScrollView,
   Text,
   TextInput,
@@ -75,7 +77,7 @@ export default function ShopProfile() {
         })
         .finally(() => setLoading(false));
     });
-  },[] );
+  }, []);
 
   const handleSubmit = () => {
     if (!tiendaEditable) {
@@ -94,7 +96,6 @@ export default function ShopProfile() {
 
     console.log("📦 JSON para enviar:", JSON.stringify(jsonPayload));
     
-    // Aquí iría la llamada a la API para actualizar los datos
     fetch(`${process.env.EXPO_PUBLIC_HOST}/api/shop/update/${shopId}`, {
       method: "PUT",
       headers: {
@@ -120,7 +121,7 @@ export default function ShopProfile() {
 
   if (loading) {
     return (
-      <View style={{ padding: 30 }}>
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
         <ActivityIndicator size="large" />
       </View>
     );
@@ -128,451 +129,474 @@ export default function ShopProfile() {
 
   if (!data) {
     return (
-      <View style={{ padding: 30 }}>
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
         <Text>No se pudo cargar el perfil de la tienda.</Text>
       </View>
     );
   }
 
   return (
-    <ScrollView
-      style={{
-        padding: 20,
-        paddingTop: 30,
-        paddingBottom: 40,
-        backgroundColor: "#fff",
-      }}
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      style={{ flex: 1 }}
+      keyboardVerticalOffset={Platform.OS === "ios" ? 64 : 0}
     >
-      <View
-        style={{
-          gap: 25,
-          paddingBottom: 20,
-          borderBottomColor: "#4A55684D",
-          borderBottomWidth: 1,
-        }}
-      >
-        <TouchableOpacity
-          style={{ flexDirection: "row", gap: 10, alignItems: "center" }}
-          onPress={() => router.back()}
-        >
-          <View
-            style={{
-              backgroundColor: "#ECF0F4",
-              paddingRight: 15,
-              paddingLeft: 15,
-              paddingTop: 12,
-              paddingBottom: 12,
-              borderRadius: 50,
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            <Image
-              source={require("../../assets/images/seller-chevron-back-icon.svg")}
-              style={{
-                height: 14,
-                width: 7,
-              }}
-            />
-          </View>
-          <Text
-            style={{
-              fontFamily: "Inter_600SemiBold",
-              fontSize: 16,
-              textAlign: "center",
-            }}
-          >
-            Perfil de Tienda
-          </Text>
-        </TouchableOpacity>
-      </View>
-      <View
-        style={{
+      <ScrollView
+        contentContainerStyle={{
           padding: 20,
-          justifyContent: "center",
-          alignItems: "center",
-          gap: 20,
+          paddingTop: 30,
+          paddingBottom: 40,
+          backgroundColor: "#fff",
         }}
+        keyboardShouldPersistTaps="handled"
       >
         <View
           style={{
-            justifyContent: "center",
-            alignItems: "center",
-            borderRadius: 100,
-            borderWidth: 30,
-            width: 100,
-            height: 100,
-            borderColor: "#FFF0F0",
+            gap: 25,
+            paddingBottom: 20,
+            borderBottomColor: "#4A55684D",
+            borderBottomWidth: 1,
           }}
         >
           <TouchableOpacity
-            style={{
-              backgroundColor: "#D61355",
-              padding: 10,
-              borderRadius: 30,
-              position: "absolute",
-              zIndex: 2,
-              top: 40,
-              left: 30,
-              borderColor: "#FFF",
-              borderWidth: 2,
-            }}
-            onPress={() => setEditando(!editando)}
+            style={{ flexDirection: "row", gap: 10, alignItems: "center" }}
+            onPress={() => router.back()}
           >
-            <Image
-              source={require("../../assets/images/delivery-pencil-icon.svg")}
-              style={{
-                height: 15,
-                width: 15,
-              }}
-            />
-          </TouchableOpacity>
-          {data?.fotoPerfil && data.fotoPerfil.trim() ? (
-            <Image
-              source={{ uri: data.fotoPerfil }}
-              style={{
-                height: 80,
-                width: 80,
-                borderRadius: 40,
-              }}
-            />
-          ) : (
             <View
               style={{
-                height: 80,
-                width: 80,
-                borderRadius: 40,
                 backgroundColor: "#ECF0F4",
+                paddingRight: 15,
+                paddingLeft: 15,
+                paddingTop: 12,
+                paddingBottom: 12,
+                borderRadius: 50,
                 alignItems: "center",
                 justifyContent: "center",
               }}
             >
               <Image
-                source={require("../../assets/images/delivery-profile-notfound.svg")}
+                source={require("../../assets/images/seller-chevron-back-icon.svg")}
                 style={{
-                  width: 80,
-                  height: 80,
+                  height: 14,
+                  width: 7,
                 }}
               />
             </View>
-          )}
+            <Text
+              style={{
+                fontFamily: "Inter_600SemiBold",
+                fontSize: 16,
+                textAlign: "center",
+              }}
+            >
+              Perfil de Tienda
+            </Text>
+          </TouchableOpacity>
         </View>
         <View
           style={{
-            width: "100%",
-            alignItems: "center",
+            padding: 20,
             justifyContent: "center",
+            alignItems: "center",
+            gap: 20,
           }}
         >
-          <Text
-            style={{ fontFamily: "Inter_600SemiBold" }}
-          >{`ID Tienda: ${shopId}`}</Text>
-        </View>
-
-        <View style={{ width: "100%", gap: 10 }}>
-          <Text style={{ textTransform: "uppercase",fontFamily:'Inter_700Bold',textAlign:'center' }}>
-            Información de la tienda
-          </Text>
           <View
             style={{
-              borderWidth: 1,
-              borderColor: "#E0E0E0",
-              borderRadius: 10,
-              padding: 15,
-              alignItems: "center",
               justifyContent: "center",
-              width: "110%",
-              gap: 15,
+              alignItems: "center",
+              borderRadius: 100,
+              borderWidth: 30,
+              width: 100,
+              height: 100,
+              borderColor: "#FFF0F0",
             }}
           >
-            {/* Nombre */}
-            <View
+            <TouchableOpacity
               style={{
-                flexDirection: "row",
-                justifyContent: "space-between",
-                width: "100%",
-                alignItems: "center",
+                backgroundColor: "#D61355",
+                padding: 10,
+                borderRadius: 30,
+                position: "absolute",
+                zIndex: 2,
+                top: 40,
+                left: 30,
+                borderColor: "#FFF",
+                borderWidth: 2,
               }}
+              onPress={() => setEditando(!editando)}
             >
-              <Text
+              <Image
+                source={require("../../assets/images/delivery-pencil-icon.svg")}
                 style={{
-                  textTransform: "uppercase",
-                  color: "#3B3B3B",
-                  fontFamily: "Inter_600SemiBold",
-                  width: 100,
+                  height: 15,
+                  width: 15,
                 }}
-              >
-                Nombre
-              </Text>
-              <TextInput
-                style={{
-                  // textTransform: "uppercase",
-                  width: 200,
-                  fontFamily: editando ? "Inter_400Regular" : "I0nter_300Light",
-                }}
-                value={tiendaEditable?.nombre || ""}
-                onChangeText={(text) =>
-                  setTiendaEditable(
-                    (prev) => prev && { ...prev, nombre: text }
-                  )
-                }
-                editable={editando}
               />
-            </View>
-
-            {/* Descripción */}
-            <View
-              style={{
-                flexDirection: "row",
-                justifyContent: "space-between",
-                width: "100%",
-                alignItems: "center",
-              }}
-            >
-              <Text
+            </TouchableOpacity>
+            {data?.fotoPerfil && data.fotoPerfil.trim() ? (
+              <Image
+                source={{ uri: data.fotoPerfil }}
                 style={{
-                  textTransform: "uppercase",
-                  color: "#3B3B3B",
-                  fontFamily: "Inter_600SemiBold",
-                  width: 100,
+                  height: 80,
+                  width: 80,
+                  borderRadius: 40,
                 }}
-              >
-                Descripción
-              </Text>
-              <TextInput
-                style={{
-                  // textTransform: "uppercase",
-                  width: 200,
-                  fontFamily: editando ? "Inter_400Regular" : "Inter_300Light",
-                }}
-                value={tiendaEditable?.descripcion || ""}
-                onChangeText={(text) =>
-                  setTiendaEditable(
-                    (prev) => prev && { ...prev, descripcion: text }
-                  )
-                }
-                editable={editando}
-                multiline
               />
-            </View>
-
-            {/* Ubicación */}
-            <View
-              style={{
-                flexDirection: "row",
-                justifyContent: "space-between",
-                width: "100%",
-                alignItems: "center",
-              }}
-            >
-              <Text
+            ) : (
+              <View
                 style={{
-                  textTransform: "uppercase",
-                  color: "#3B3B3B",
-                  fontFamily: "Inter_600SemiBold",
-                  width: 100,
+                  height: 80,
+                  width: 80,
+                  borderRadius: 40,
+                  backgroundColor: "#ECF0F4",
+                  alignItems: "center",
+                  justifyContent: "center",
                 }}
               >
-                Ubicación
-              </Text>
-              <TextInput
-                style={{
-                  // textTransform: "uppercase",
-                  width: 200,
-                  // textAlign: "right",
-                  fontFamily: editando ? "Inter_400Regular" : "Inter_300Light",
-                }}
-                value={tiendaEditable?.ubicacion || ""}
-                onChangeText={(text) =>
-                  setTiendaEditable(
-                    (prev) => prev && { ...prev, ubicacion: text }
-                  )
-                }
-                editable={editando}
-              />
-            </View>
-
-            {/* Horario Apertura */}
-            <View
-              style={{
-                flexDirection: "row",
-                justifyContent: "space-between",
-                width: "100%",
-                alignItems: "center",
-              }}
-            >
-              <Text
-                style={{
-                  textTransform: "uppercase",
-                  color: "#3B3B3B",
-                  fontFamily: "Inter_600SemiBold",
-                  width: 100,
-                }}
-              >
-                Apertura
-              </Text>
-              {/* <RNDateTimePicker mode="time" value={new Date(tiendaEditable!.horarioApertura)}/> */}
-              <TextInput
-                style={{
-                  // textTransform: "uppercase",
-                  width: 200,
-                  // textAlign: "right",
-                  fontFamily: editando ? "Inter_400Regular" : "Inter_300Light",
-                }}
-                value={tiendaEditable?.horarioApertura || ""}
-                onChangeText={(text) =>
-                  setTiendaEditable(
-                    (prev) => prev && { ...prev, horarioApertura: text }
-                  )
-                }
-                editable={editando}
-                placeholder="HH:MM"
-              />
-            </View>
-
-            {/* Horario Cierre */}
-            <View
-              style={{
-                flexDirection: "row",
-                justifyContent: "space-between",
-                width: "100%",
-                alignItems: "center",
-              }}
-            >
-              <Text
-                style={{
-                  textTransform: "uppercase",
-                  color: "#3B3B3B",
-                  fontFamily: "Inter_600SemiBold",
-                  width: 100,
-                }}
-              >
-                Cierre
-              </Text>
-              <TextInput
-                style={{
-                  // textTransform: "uppercase",
-                  width: 200,
-                  // textAlign: "right",
-                  fontFamily: editando ? "Inter_400Regular" : "Inter_300Light",
-                }}
-                value={tiendaEditable?.horarioCierre || ""}
-                onChangeText={(text) =>
-                  setTiendaEditable(
-                    (prev) => prev && { ...prev, horarioCierre: text }
-                  )
-                }
-                editable={editando}
-                placeholder="HH:MM"
-              />
-            </View>
-
-            {/* Tiempo Entrega Promedio */}
-            <View
-              style={{
-                flexDirection: "row",
-                justifyContent: "space-between",
-                width: "100%",
-                alignItems: "center",
-              }}
-            >
-              <Text
-                style={{
-                  textTransform: "uppercase",
-                  color: "#3B3B3B",
-                  fontFamily: "Inter_600SemiBold",
-                  width: 100,
-                }}
-              >
-                Tiempo Entrega (min)
-              </Text>
-              <TextInput
-                style={{
-                  // textTransform: "uppercase",
-                  width: 200,
-                  // textAlign: "right",
-                  fontFamily: editando ? "Inter_400Regular" : "Inter_300Light",
-                }}
-                value={tiendaEditable?.tiempoEntregaPromedio?.toString() || ""}
-                onChangeText={(text) =>
-                  setTiendaEditable(
-                    (prev) => prev && { ...prev, tiempoEntregaPromedio: parseInt(text) || 0 }
-                  )
-                }
-                editable={editando}
-                keyboardType="numeric"
-              />
-            </View>
-
-            {editando && (
-              <TouchableOpacity
-                style={{ width: "100%", alignItems: "center" }}
-                onPress={handleSubmit}
-              >
-                <View
+                <Image
+                  source={require("../../assets/images/delivery-profile-notfound.svg")}
                   style={{
-                    width: 120,
-                    padding: 10,
-                    borderRadius: 30,
-                    backgroundColor: "#EB6278",
+                    width: 80,
+                    height: 80,
                   }}
-                >
-                  <Text
-                    style={{
-                      textTransform: "uppercase",
-                      color: "#fff",
-                      fontFamily: "Inter_700Bold",
-                      textAlign: "center",
-                    }}
-                  >
-                    Guardar
-                  </Text>
-                </View>
-              </TouchableOpacity>
+                />
+              </View>
             )}
           </View>
-        </View>
-        
-        <TouchableOpacity
-          onPress={() => router.push({ pathname: '/' })}
-          style={{
-            flexDirection: "row",
-            alignItems: "center",
-            justifyContent: "flex-start",
-            width: "100%",
-            gap: 10,
-          }}
-        >
           <View
             style={{
-              padding: 10,
-              backgroundColor: "#EEEEEE",
-              borderRadius: 30,
-              width: 32,
-              height: 32,
+              width: "100%",
               alignItems: "center",
               justifyContent: "center",
             }}
           >
-            <Image
-              source={require("../../assets/images/delivery-profile-logout-icon.svg")}
-              style={{
-                height: 19,
-                width: 19,
-              }}
-            />
+            <Text
+              style={{ fontFamily: "Inter_600SemiBold" }}
+            >{`ID Tienda: ${shopId}`}</Text>
           </View>
-          <Text
+
+          <View style={{ width: "115%", gap: 10 }}>
+            <Text style={{ textTransform: "uppercase", fontFamily: 'Inter_700Bold', textAlign: 'center' }}>
+              Información de la tienda
+            </Text>
+            <View
+              style={{
+                borderWidth: 1,
+                borderColor: "#E0E0E0",
+                borderRadius: 10,
+                padding: 15,
+                alignItems: "center",
+                justifyContent: "center",
+                width: "100%",
+                gap: 15,
+              }}
+            >
+              {/* Nombre */}
+              <View
+                style={{
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                  width: "100%",
+                  alignItems: "center",
+                }}
+              >
+                <Text
+                  style={{
+                    textTransform: "uppercase",
+                    color: "#3B3B3B",
+                    fontFamily: "Inter_600SemiBold",
+                    width: 100,
+                  }}
+                >
+                  Nombre
+                </Text>
+                <TextInput
+                  style={{
+                    width: 200,
+                    fontFamily: editando ? "Inter_400Regular" : "Inter_300Light",
+                    padding: 8,
+                    // borderWidth: editando ? 1 : 0,
+                    // borderColor: editando ? "#E0E0E0" : "transparent",
+                    borderRadius: 5,
+                  }}
+                  value={tiendaEditable?.nombre || ""}
+                  onChangeText={(text) =>
+                    setTiendaEditable(
+                      (prev) => prev && { ...prev, nombre: text }
+                    )
+                  }
+                  editable={editando}
+                />
+              </View>
+
+              {/* Descripción */}
+              <View
+                style={{
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                  width: "100%",
+                  alignItems: "flex-start",
+                }}
+              >
+                <Text
+                  style={{
+                    textTransform: "uppercase",
+                    color: "#3B3B3B",
+                    fontFamily: "Inter_600SemiBold",
+                    width: 100,
+                  }}
+                >
+                  Descripción
+                </Text>
+                <TextInput
+                  style={{
+                    width: 200,
+                    fontFamily: editando ? "Inter_400Regular" : "Inter_300Light",
+                    padding: 8,
+                    // borderWidth: editando ? 1 : 0,
+                    // borderColor: editando ? "#E0E0E0" : "transparent",
+                    borderRadius: 5,
+                    minHeight: 80,
+                    textAlignVertical: 'top',
+                  }}
+                  value={tiendaEditable?.descripcion || ""}
+                  onChangeText={(text) =>
+                    setTiendaEditable(
+                      (prev) => prev && { ...prev, descripcion: text }
+                    )
+                  }
+                  editable={editando}
+                  multiline
+                />
+              </View>
+
+              {/* Ubicación */}
+              <View
+                style={{
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                  width: "100%",
+                  alignItems: "center",
+                }}
+              >
+                <Text
+                  style={{
+                    textTransform: "uppercase",
+                    color: "#3B3B3B",
+                    fontFamily: "Inter_600SemiBold",
+                    width: 100,
+                  }}
+                >
+                  Ubicación
+                </Text>
+                <TextInput
+                  style={{
+                    width: 200,
+                    fontFamily: editando ? "Inter_400Regular" : "Inter_300Light",
+                    padding: 8,
+                    // borderWidth: editando ? 1 : 0,
+                    // borderColor: editando ? "#E0E0E0" : "transparent",
+                    borderRadius: 5,
+                  }}
+                  value={tiendaEditable?.ubicacion || ""}
+                  onChangeText={(text) =>
+                    setTiendaEditable(
+                      (prev) => prev && { ...prev, ubicacion: text }
+                    )
+                  }
+                  editable={editando}
+                />
+              </View>
+
+              {/* Horario Apertura */}
+              <View
+                style={{
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                  width: "100%",
+                  alignItems: "center",
+                }}
+              >
+                <Text
+                  style={{
+                    textTransform: "uppercase",
+                    color: "#3B3B3B",
+                    fontFamily: "Inter_600SemiBold",
+                    width: 100,
+                  }}
+                >
+                  Apertura
+                </Text>
+                <TextInput
+                  style={{
+                    width: 200,
+                    fontFamily: editando ? "Inter_400Regular" : "Inter_300Light",
+                    padding: 8,
+                    // borderWidth: editando ? 1 : 0,
+                    // borderColor: editando ? "#E0E0E0" : "transparent",
+                    borderRadius: 5,
+                  }}
+                  value={tiendaEditable?.horarioApertura || ""}
+                  onChangeText={(text) =>
+                    setTiendaEditable(
+                      (prev) => prev && { ...prev, horarioApertura: text }
+                    )
+                  }
+                  editable={editando}
+                  placeholder="HH:MM"
+                />
+              </View>
+
+              {/* Horario Cierre */}
+              <View
+                style={{
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                  width: "100%",
+                  alignItems: "center",
+                }}
+              >
+                <Text
+                  style={{
+                    textTransform: "uppercase",
+                    color: "#3B3B3B",
+                    fontFamily: "Inter_600SemiBold",
+                    width: 100,
+                  }}
+                >
+                  Cierre
+                </Text>
+                <TextInput
+                  style={{
+                    width: 200,
+                    fontFamily: editando ? "Inter_400Regular" : "Inter_300Light",
+                    padding: 8,
+                    // borderWidth: editando ? 1 : 0,
+                    // borderColor: editando ? "#E0E0E0" : "transparent",
+                    borderRadius: 5,
+                  }}
+                  value={tiendaEditable?.horarioCierre || ""}
+                  onChangeText={(text) =>
+                    setTiendaEditable(
+                      (prev) => prev && { ...prev, horarioCierre: text }
+                    )
+                  }
+                  editable={editando}
+                  placeholder="HH:MM"
+                />
+              </View>
+
+              {/* Tiempo Entrega Promedio */}
+              <View
+                style={{
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                  width: "100%",
+                  alignItems: "center",
+                }}
+              >
+                <Text
+                  style={{
+                    textTransform: "uppercase",
+                    color: "#3B3B3B",
+                    fontFamily: "Inter_600SemiBold",
+                    width: 100,
+                  }}
+                >
+                  Tiempo Entrega (min)
+                </Text>
+                <TextInput
+                  style={{
+                    width: 200,
+                    fontFamily: editando ? "Inter_400Regular" : "Inter_300Light",
+                    padding: 8,
+                    // borderWidth: editando ? 1 : 0,
+                    // borderColor: editando ? "#E0E0E0" : "transparent",
+                    borderRadius: 5,
+                  }}
+                  value={tiendaEditable?.tiempoEntregaPromedio?.toString() || ""}
+                  onChangeText={(text) =>
+                    setTiendaEditable(
+                      (prev) => prev && { ...prev, tiempoEntregaPromedio: parseInt(text) || 0 }
+                    )
+                  }
+                  editable={editando}
+                  keyboardType="numeric"
+                />
+              </View>
+
+              {editando && (
+                <TouchableOpacity
+                  style={{ width: "100%", alignItems: "center", marginTop: 20 }}
+                  onPress={handleSubmit}
+                >
+                  <View
+                    style={{
+                      width: 120,
+                      padding: 10,
+                      borderRadius: 30,
+                      backgroundColor: "#EB6278",
+                    }}
+                  >
+                    <Text
+                      style={{
+                        textTransform: "uppercase",
+                        color: "#fff",
+                        fontFamily: "Inter_700Bold",
+                        textAlign: "center",
+                      }}
+                    >
+                      Guardar
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+              )}
+            </View>
+          </View>
+          
+          <TouchableOpacity
+            onPress={() => router.push({ pathname: '/' })}
             style={{
-              color: "#FF627B",
-              fontFamily: "Inter_700Bold",
-              fontSize: 16,
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "flex-start",
+              width: "100%",
+              gap: 10,
+              marginTop: 20,
             }}
           >
-            Cerrar sesión
-          </Text>
-        </TouchableOpacity>
-      </View>
-    </ScrollView>
+            <View
+              style={{
+                padding: 10,
+                backgroundColor: "#EEEEEE",
+                borderRadius: 30,
+                width: 32,
+                height: 32,
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <Image
+                source={require("../../assets/images/delivery-profile-logout-icon.svg")}
+                style={{
+                  height: 19,
+                  width: 19,
+                }}
+              />
+            </View>
+            <Text
+              style={{
+                color: "#FF627B",
+                fontFamily: "Inter_700Bold",
+                fontSize: 16,
+              }}
+            >
+              Cerrar sesión
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
