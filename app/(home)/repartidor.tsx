@@ -39,7 +39,7 @@ async function handlerRegisterDelivery({
   await fetch(`${process.env.EXPO_PUBLIC_HOST}/api/delivery/register`,{
     method:'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ c_i:cedula,email:email,name:nombre,lastname:apellido,phone:telefono,password:contrasena, address:location})
+    body: JSON.stringify({ c_i:cedula,email:email,name:nombre,lastname:apellido,phone:telefono,password:contrasena, address:address})
 
   }).then(res=>{
     if(res.status === 201) {
