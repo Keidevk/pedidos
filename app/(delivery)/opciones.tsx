@@ -423,7 +423,9 @@ export default function Home() {
                 alignItems: "center",
                 justifyContent: "center",
                 gap: 15,
+                paddingBottom: 160,
               }}
+              keyboardShouldPersistTaps="handled"
             >
               <View
                 style={{
@@ -553,13 +555,16 @@ export default function Home() {
                     textAlign: "center",
                   }}
                   value={
-                    vehiculoEditable?.licencia === ""
-                      ? `NO REGISTRADO`
-                      : `${vehiculoEditable?.licencia.toLocaleUpperCase()}`
+                    editandoVehiculo
+                      ? vehiculoEditable?.licencia ?? ""
+                      : vehiculoEditable?.licencia === ""
+                      ? "NO REGISTRADO"
+                      : vehiculoEditable?.licencia.toUpperCase()
                   }
                   onChangeText={(text) =>
                     setVehiculoEditable(
-                      (prev) => prev && { ...prev, licencia: text }
+                      (prev) =>
+                        prev && { ...prev, licencia: text?.toUpperCase() ?? "" }
                     )
                   }
                   editable={editandoVehiculo}
@@ -591,13 +596,19 @@ export default function Home() {
                     textAlign: "center",
                   }}
                   value={
-                    vehiculoEditable?.descripcion === ""
-                      ? `NO REGISTRADO`
-                      : `${vehiculoEditable?.descripcion.toLocaleUpperCase()}`
+                    editandoVehiculo
+                      ? vehiculoEditable?.descripcion ?? ""
+                      : vehiculoEditable?.descripcion === ""
+                      ? "NO REGISTRADO"
+                      : vehiculoEditable?.descripcion.toUpperCase()
                   }
                   onChangeText={(text) =>
                     setVehiculoEditable(
-                      (prev) => prev && { ...prev, descripcion: text }
+                      (prev) =>
+                        prev && {
+                          ...prev,
+                          descripcion: text?.toUpperCase() ?? "",
+                        }
                     )
                   }
                   editable={editandoVehiculo}
