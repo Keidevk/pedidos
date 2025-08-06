@@ -116,12 +116,12 @@ export default function MenuPrincipal() {
     (p) => agruparEstado(p.estado) === filtro
   );
 
-  const asignarDelivery = async () => {
-    if (!repartidorSeleccionado || !pedidoActivo) return;
+  const asignarDelivery = async (delivery: ActiveDelivery) => {
+    if (!delivery || !pedidoActivo) return;
 
     try {
       const res = await fetch(
-        `${process.env.EXPO_PUBLIC_HOST}/api/delivery/assignment/${repartidorSeleccionado.userId}/${pedidoActivo.id}`,
+        `${process.env.EXPO_PUBLIC_HOST}/api/delivery/assignment/${delivery.userId}/${pedidoActivo.id}`,
         {
           method: "PUT",
           headers: {
@@ -132,15 +132,13 @@ export default function MenuPrincipal() {
       );
 
       const data = await res.json();
-      console.log("Respuesta asignación:", data);
-
-      // 🔄 Refresca la lista de repartidores disponibles
+      console.log("✅ Asignación exitosa:", data);
       await refetchDeliverys();
 
       setDeliveryPorConfirmar(null);
       setMostrarModalDelivery(false);
     } catch (error) {
-      console.error("Error al asignar delivery:", error);
+      console.error("❌ Error al asignar delivery:", error);
     }
   };
 
@@ -585,12 +583,7 @@ export default function MenuPrincipal() {
                                     marginTop: 10,
                                   }}
                                   onPress={() => {
-                                    setRepartidorSeleccionado(
-                                      deliveryPorConfirmar
-                                    );
-                                    asignarDelivery();
-                                    setDeliveryPorConfirmar(null);
-                                    setMostrarModalDelivery(false);
+                                    asignarDelivery(deliveryPorConfirmar);
                                   }}
                                 >
                                   <Text
@@ -614,29 +607,31 @@ export default function MenuPrincipal() {
                           Buscando repartidores disponibles...
                         </Text>
                       )}
-                      {filtro === "activa" && !mostrarModalDelivery && (
-                        <TouchableOpacity
-                          style={{
-                            backgroundColor: "#E94B64",
-                            paddingVertical: 10,
-                            borderRadius: 5,
-                          }}
-                          onPress={() => {
-                            refetchDeliverys();
-                            setMostrarModalDelivery(true);
-                          }}
-                        >
-                          <Text
+                      {filtro === "activa" &&
+                        !mostrarModalDelivery &&
+                        pedidoActivo?.repartidorId === null && (
+                          <TouchableOpacity
                             style={{
-                              textAlign: "center",
-                              color: "#fff",
-                              fontFamily: "Inter_600SemiBold",
+                              backgroundColor: "#E94B64",
+                              paddingVertical: 10,
+                              borderRadius: 5,
+                            }}
+                            onPress={() => {
+                              refetchDeliverys();
+                              setMostrarModalDelivery(true);
                             }}
                           >
-                            Solicitar delivery
-                          </Text>
-                        </TouchableOpacity>
-                      )}
+                            <Text
+                              style={{
+                                textAlign: "center",
+                                color: "#fff",
+                                fontFamily: "Inter_600SemiBold",
+                              }}
+                            >
+                              Solicitar delivery
+                            </Text>
+                          </TouchableOpacity>
+                        )}
                     </View>
                     <TouchableOpacity
                       onPress={() => {
