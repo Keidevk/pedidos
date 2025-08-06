@@ -10,13 +10,14 @@ import { router } from "expo-router";
 import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
+  Modal,
+  Pressable,
   ScrollView,
   Text,
   TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
-import RNPickerSelect from "react-native-picker-select";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { getItem } from "../utils";
 
@@ -57,6 +58,7 @@ export default function Home() {
 
   const [data, setData] = useState<Repartidor | null>(null);
   const [loading, setLoading] = useState(true);
+  const [showModal, setShowModal] = useState(true);
   const [vehiculoEditable, setVehiculoEditable] = useState<Vehiculo | null>(
     null
   );
@@ -312,73 +314,6 @@ export default function Home() {
                 alignItems: "center",
               }}
             >
-              <Text
-                style={{
-                  textTransform: "uppercase",
-                  color: "#3B3B3B",
-                  fontFamily: "Inter_300Light",
-                  width: 100,
-                }}
-              >
-                Tipo
-              </Text>
-
-              {editandoVehiculo ? (
-                <RNPickerSelect
-                  value={vehiculoEditable?.tipoVehiculo}
-                  onValueChange={(value) =>
-                    setVehiculoEditable(
-                      (prev) => prev && { ...prev, tipoVehiculo: value }
-                    )
-                  }
-                  items={vehiculoOptions}
-                  placeholder={{ label: "Selecciona...", value: null }}
-                  style={{
-                    inputIOS: {
-                      fontSize: 14,
-                      textTransform: "uppercase",
-                      textAlign: "center",
-                      width: 100,
-                      borderWidth: 1,
-                      borderColor: "#E0E0E0",
-                      borderRadius: 8,
-                      padding: 10,
-                    },
-                    inputAndroid: {
-                      fontSize: 14,
-                      textTransform: "uppercase",
-                      textAlign: "center",
-                      width: 100,
-                      borderWidth: 1,
-                      borderColor: "#E0E0E0",
-                      borderRadius: 8,
-                      padding: 10,
-                    },
-                  }}
-                />
-              ) : (
-                <Text
-                  style={{
-                    textTransform: "uppercase",
-                    width: 100,
-                    textAlign: "center",
-                  }}
-                >
-                  {vehiculoEditable?.tipoVehiculo === ""
-                    ? "NO REGISTRADO"
-                    : vehiculoEditable?.tipoVehiculo.toUpperCase()}
-                </Text>
-              )}
-            </View>
-
-            <View
-              style={{
-                flexDirection: "row",
-                justifyContent: "space-between",
-                width: "100%",
-                alignItems: "center",
-              }}
-            >
               <View
                 style={{
                   backgroundColor: "#EEEEEE",
@@ -489,51 +424,87 @@ export default function Home() {
               >
                 Tipo
               </Text>
-
               {editandoVehiculo ? (
-                <RNPickerSelect
-                  value={vehiculoEditable?.tipoVehiculo}
-                  onValueChange={(value) =>
-                    setVehiculoEditable(
-                      (prev) => prev && { ...prev, tipoVehiculo: value }
-                    )
-                  }
-                  items={vehiculoOptions}
-                  placeholder={{ label: "Selecciona...", value: null }}
-                  style={{
-                    inputIOS: {
-                      fontSize: 14,
-                      textTransform: "uppercase",
-                      textAlign: "center",
-                      width: 100,
+                <>
+                  <Pressable
+                    onPress={() => setShowModal(true)}
+                    style={{
+                      padding: 10,
                       borderWidth: 1,
                       borderColor: "#E0E0E0",
                       borderRadius: 8,
-                      padding: 10,
-                    },
-                    inputAndroid: {
-                      fontSize: 14,
-                      textTransform: "uppercase",
-                      textAlign: "center",
-                      width: 100,
-                      borderWidth: 1,
-                      borderColor: "#E0E0E0",
-                      borderRadius: 8,
-                      padding: 10,
-                    },
-                  }}
-                />
+                      width: 120,
+                      backgroundColor: "#F7F7F7",
+                    }}
+                  >
+                    <Text
+                      style={{
+                        textAlign: "center",
+                        textTransform: "uppercase",
+                      }}
+                    >
+                      {vehiculoEditable?.tipoVehiculo
+                        ? vehiculoEditable.tipoVehiculo.toUpperCase()
+                        : "NO REGISTRADO"}
+                    </Text>
+                  </Pressable>
+
+                  <Modal transparent visible={showModal} animationType="fade">
+                    <View
+                      style={{
+                        flex: 1,
+                        backgroundColor: "#00000055",
+                        justifyContent: "center",
+                        alignItems: "center",
+                      }}
+                    >
+                      <View
+                        style={{
+                          backgroundColor: "#fff",
+                          width: 250,
+                          borderRadius: 10,
+                          padding: 20,
+                          gap: 10,
+                        }}
+                      >
+                        {vehiculoOptions.map((opt) => (
+                          <Pressable
+                            key={opt.value}
+                            onPress={() => {
+                              if (vehiculoEditable) {
+                                setVehiculoEditable({
+                                  ...vehiculoEditable,
+                                  tipoVehiculo: opt.value,
+                                });
+                              }
+                              setShowModal(false);
+                            }}
+                            style={{
+                              backgroundColor: "#EFEFEF",
+                              padding: 10,
+                              borderRadius: 6,
+                            }}
+                          >
+                            <Text style={{ textAlign: "center" }}>
+                              {opt.label}
+                            </Text>
+                          </Pressable>
+                        ))}
+                      </View>
+                    </View>
+                  </Modal>
+                </>
               ) : (
                 <Text
                   style={{
                     textTransform: "uppercase",
-                    width: 100,
+                    width: 120,
                     textAlign: "center",
                   }}
                 >
-                  {vehiculoEditable?.tipoVehiculo === ""
-                    ? "NO REGISTRADO"
-                    : vehiculoEditable?.tipoVehiculo.toUpperCase()}
+                  {vehiculoEditable?.tipoVehiculo
+                    ? vehiculoEditable.tipoVehiculo.toUpperCase()
+                    : "NO REGISTRADO"}
                 </Text>
               )}
             </View>
