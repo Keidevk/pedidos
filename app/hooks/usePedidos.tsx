@@ -16,31 +16,31 @@ export function usePedidos(shopId: string) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  useEffect(() => {
+  const fetchPedidos = async () => {
     if (!shopId) return;
 
-    const fetchPedidos = async () => {
-      try {
-        const url = `${process.env.EXPO_PUBLIC_HOST}/api/stats/orders/${shopId}`;
-        console.log("📦 Fetch desde:", url);
+    try {
+      const url = `${process.env.EXPO_PUBLIC_HOST}/api/stats/orders/${shopId}`;
+      console.log("📦 Refetch desde:", url);
 
-        const res = await fetch(url);
-        const json = await res.json();
+      const res = await fetch(url);
+      const json = await res.json();
 
-        if (res.ok && Array.isArray(json)) {
-          setPedidos(json); // 👈 directamente, sin json.data
-        } else {
-          throw new Error("Formato inesperado en la respuesta");
-        }
-      } catch (err: any) {
-        setError(err.message ?? "Error desconocido");
-      } finally {
-        setLoading(false);
+      if (res.ok && Array.isArray(json)) {
+        setPedidos(json);
+      } else {
+        throw new Error("Formato inesperado en la respuesta");
       }
-    };
+    } catch (err: any) {
+      setError(err.message ?? "Error desconocido");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    fetchPedidos();
+  useEffect(() => {
+    fetchPedidos(); // 🔁 primera carga
   }, [shopId]);
 
-  return { pedidos, loading, error };
+  return { pedidos, loading, error, refetchPedidos: fetchPedidos };
 }
