@@ -12,7 +12,7 @@ import { Text, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import useCargarCarritosPorTienda from "../hooks/useCarshopping";
 import { CarritoItem } from "../types";
-import { getShopById } from "../utils";
+import { getItem, getShopById } from "../utils";
 
 interface Tienda {
   id: string;
@@ -46,12 +46,14 @@ const fetchTiendas = async (ids: string[]): Promise<Tienda[]> => {
 export default function CarShop() {
   const [carshopping, setCarshopping] = useState<CarritoItem[]>([]);
   const [shopData, setShopData] = useState<Tienda[]>();
+  const [userId,setUserId] = useState('')
   const insets = useSafeAreaInsets();
   useFonts({ Inter_600SemiBold, Inter_300Light, Inter_400Regular });
   // useCargarCarrito(setCarshopping);
-  useCargarCarritosPorTienda(setCarshopping);
+  useCargarCarritosPorTienda(setCarshopping,userId);
 
   useEffect(() => {
+    getItem('@userId',setUserId)
     const tiendaIds = Array.from(
       new Set(carshopping.map((item) => item.tiendaId))
     );
@@ -60,9 +62,62 @@ export default function CarShop() {
     });
   }, [carshopping]);
 
-    function handlerCarrito(id:string){
-        router.push({pathname:'/carrito/[id]',params:{id}})
+  const handleRemoveCart = async (tiendaId: string) => {
+  try {
+    // 1. Eliminar el carrito específico del usuario y tienda
+    await AsyncStorage.removeItem(`carrito_${userId}_${tiendaId}`);
+    
+    // 2. Recargar todos los carritos restantes del usuario
+    const keys = await AsyncStorage.getAllKeys();
+    const carritoKeys = keys.filter(key => key.startsWith(`carrito_${userId}_`));
+    
+    if (carritoKeys.length === 0) {
+      // Si no hay más carritos, establecer el estado como array vacío
+      setCarshopping([]);
+      setShopData([]);
+      return;
     }
+    
+    // 3. Obtener todos los carritos restantes
+    const carritosRaw = await AsyncStorage.multiGet(carritoKeys);
+    
+    // 4. Procesar los carritos como en el hook
+    const todosLosItems: CarritoItem[] = carritosRaw.flatMap(([key, value]) => {
+      if (value) {
+        try {
+          const items: Omit<CarritoItem, 'tiendaId' | 'clienteId'>[] = JSON.parse(value);
+          const parts = key.split('_');
+          const tiendaIdFromKey = parts[2];
+          return items.map(item => ({
+            ...item,
+            tiendaId: tiendaIdFromKey,
+            clienteId: userId
+          }));
+        } catch (e) {
+          console.error(`❌ Error parseando ${key}:`, e);
+          return [];
+        }
+      }
+      return [];
+    });
+    
+    // 5. Actualizar el estado con los carritos restantes
+    setCarshopping(todosLosItems);
+    
+    // 6. Actualizar los datos de las tiendas
+    const tiendaIds = Array.from(new Set(todosLosItems.map(item => item.tiendaId)));
+    const tiendasActualizadas = await fetchTiendas(tiendaIds);
+    setShopData(tiendasActualizadas);
+    
+    console.log('✅ Carrito eliminado y lista actualizada');
+  } catch (error) {
+    console.error('❌ Error al eliminar el carrito:', error);
+  }
+};
+
+  function handlerCarrito(id:string){
+      router.push({pathname:'/carrito/[id]',params:{id}})
+  }
   const groupedByTienda: Record<string, number> = carshopping.reduce(
     (acc: Record<string, number>, item: CarritoItem) => {
       const { tiendaId, cantidad } = item;
@@ -125,11 +180,7 @@ export default function CarShop() {
                     </Text>
                     <View style={{ flexDirection: "row", marginTop: 5 }}>
                       <TouchableOpacity
-                        onPress={async () => {
-                          await AsyncStorage.removeItem(`carrito_${shop.id}`);
-                          // eslint-disable-next-line react-hooks/rules-of-hooks
-                          useCargarCarritosPorTienda(setCarshopping); // válido aquí dentro del componente
-                        }}
+                        onPress={async () => {await handleRemoveCart(shop.id);}}
 
                         style={{
                           width: 75,

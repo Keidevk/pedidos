@@ -183,6 +183,23 @@ export default function SellerLayout() {
         }}
       />
       <Tabs.Screen
+        name="dataProcessHelpers"
+        options={{
+          href: null,
+          title: "Tienda",
+          tabBarIcon: ({ focused }) => (
+            <Image
+              source={require("../../assets/images/shop-icon.svg")}
+              style={{
+                height: 25,
+                width: 24,
+                tintColor: "#AFAFAF",
+              }}
+            />
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="opciones"
         options={{
           title: "Perfil",

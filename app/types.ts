@@ -25,7 +25,8 @@ export interface Producto {
   categoriaId: string;
 }
 export type CarritoItem = {
-    tiendaId:string;
-    productoId: string;
-    cantidad: number;
+  tiendaId: string;
+  productoId: string;
+  cantidad: number;
+  clienteId: string; 
 };
