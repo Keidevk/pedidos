@@ -20,7 +20,6 @@ export default function SellerLayout() {
           ),
         }}
       />
-
       <Tabs.Screen
         name="sellerOrderPage"
         options={{
@@ -39,6 +38,7 @@ export default function SellerLayout() {
           ),
         }}
       />
+      
 
       <Tabs.Screen
         name="sellerRequests"
@@ -178,6 +178,19 @@ export default function SellerLayout() {
                 width: 24,
                 tintColor: "#AFAFAF",
               }}
+            />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="opciones"
+        options={{
+          title: "Perfil",
+          tabBarIcon: (focused) => (
+            <Image
+              source={require("../../assets/images/perfil.svg")}
+              style={{ height: 30, width: 30 }}
+              tintColor={"#AFAFAF"}
             />
           ),
         }}

@@ -2,20 +2,95 @@ import { Inter_300Light, Inter_900Black } from "@expo-google-fonts/inter";
 import { LilyScriptOne_400Regular } from "@expo-google-fonts/lily-script-one";
 import { useFonts } from "expo-font";
 import { Image } from "expo-image";
-import { Link } from "expo-router";
-import React from "react";
-import { StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import * as Location from 'expo-location';
+
+import { router } from "expo-router";
+import React, { useEffect, useState } from "react";
+import { Alert, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+async function handlerRegisterDelivery({
+  cedula,
+  email,
+  nombre,
+  apellido,
+  telefono,
+  contrasena,
+  confirmarContrasena,
+  address
+}: {
+  cedula: string;
+  email: string;
+  nombre: string;
+  apellido: string;
+  telefono: string;
+  contrasena: string;
+  confirmarContrasena: string;
+  address:Location.LocationObject|null
+}) {
+  if (!cedula || !nombre ||!email || !apellido || !telefono || !contrasena || !confirmarContrasena||!address) {
+    Alert.alert('Formulario incompleto', 'Por favor completa todos los campos');
+  }
+
+  if (contrasena !== confirmarContrasena) {
+    Alert.alert('Contraseña no coincide', 'Verifica que las contraseñas sean iguales');
+  }
+  
+  await fetch(`${process.env.EXPO_PUBLIC_HOST}/api/delivery/register`,{
+    method:'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ c_i:cedula,email:email,name:nombre,lastname:apellido,phone:telefono,password:contrasena, address:location})
+
+  }).then(res=>{
+    if(res.status === 201) {
+      Alert.alert("Registro repartidor","Repartidor Creado con exito")
+      router.navigate('/(home)')
+    }
+    else if(res.status === 409){
+      Alert.alert("Registro repartidor","Ya existe un repartidor con esos datos")
+      router.navigate('/(home)')
+    }
+  })
+}
+
 export default function RepartidorRegistrar(){
- const insets = useSafeAreaInsets();
-   const [cedula, onChangeCedula] = React.useState('')
-   const [fontsLoaded] = useFonts({Inter_900Black,LilyScriptOne_400Regular,Inter_300Light});
+  const insets = useSafeAreaInsets();
+  const [cedula, onChangeCedula] = useState('')
+  const [email, setEmail] = useState('');
+  const [nombre, setNombre] = useState('');
+  const [apellido, setApellido] = useState('');
+  const [telefono, setTelefono] = useState('');
+  const [contrasena, setContrasena] = useState('');
+  const [confirmarContrasena, setConfirmarContrasena] = React.useState(''); 
+  const [location, setLocation] = useState<Location.LocationObject | null>(null);
+   
+  useFonts({Inter_900Black,LilyScriptOne_400Regular,Inter_300Light});
  
-   if (!fontsLoaded) {
-     return null;
-   }      
-   return(<View style={{ flex: 1, paddingTop: insets.top,}}>
+  useEffect(() => {
+      async function getCurrentLocation() {
+        
+        let { status } = await Location.requestForegroundPermissionsAsync();
+        if (status !== 'granted') {
+          Alert.alert("Permiso denegado",'El permiso para la ubicacion fue denegado');
+          return;
+        }
+  
+        let location = await Location.getCurrentPositionAsync({});
+        setLocation(location);
+        console.log(location)
+      }
+  
+      getCurrentLocation();
+    }, []); 
+        
+   return(
+   <KeyboardAvoidingView
+         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+         style={{ flex: 1 }}>
+         <ScrollView
+           contentContainerStyle={{ paddingTop: insets.top, paddingBottom: 20 }}
+           keyboardShouldPersistTaps="handled">
+   <View>
       <View style={{height:120,alignItems:'center'}}>
         <Image source={require('../../assets/images/logo.svg')}
         contentFit="contain"
@@ -32,43 +107,51 @@ export default function RepartidorRegistrar(){
        </TextInput>
      </View>
      <View style={style.textinput}>
+        <TextInput
+          style={{fontFamily:'Inter_300Light'}}
+          placeholder="Correo Electrónico"
+          value={email}
+          onChangeText={setEmail}>
+        </TextInput>
+      </View>
+     <View style={style.textinput}>
        <TextInput
          style={{fontFamily:'Inter_300Light'}}
          placeholder="Nombre "
-         value={cedula}
-         onChangeText={onChangeCedula}>
+         value={nombre}
+         onChangeText={setNombre}>
        </TextInput>
      </View>
      <View style={style.textinput}>
        <TextInput
          style={{fontFamily:'Inter_300Light'}}
          placeholder="Apellido"
-         value={cedula}
-         onChangeText={onChangeCedula}>
+         value={apellido}
+         onChangeText={setApellido}>
        </TextInput>
      </View>
      <View style={style.textinput}>
        <TextInput
          style={{fontFamily:'Inter_300Light'}}
          placeholder="Teléfono"
-         value={cedula}
-         onChangeText={onChangeCedula}>
+         value={telefono}
+         onChangeText={setTelefono}>
        </TextInput>
      </View>
      <View style={style.textinput}>
        <TextInput
          style={{fontFamily:'Inter_300Light'}}
          placeholder="Contraseña"
-         value={cedula}
-         onChangeText={onChangeCedula}>
+         value={contrasena}
+         onChangeText={setContrasena}>
        </TextInput>
      </View>
      <View style={style.textinput}>
        <TextInput
          style={{fontFamily:'Inter_300Light'}}
          placeholder="Confirmar contraseña"
-         value={cedula}
-         onChangeText={onChangeCedula}>
+         value={confirmarContrasena}
+         onChangeText={setConfirmarContrasena}>
        </TextInput>
      </View>
      <TouchableOpacity style={{
@@ -78,9 +161,11 @@ export default function RepartidorRegistrar(){
              backgroundColor:'#FE9BAB',
              boxShadow:[{blurRadius:4,offsetX:1,offsetY:2,color:'#828282'}],
            }}>
-             <Link href={'/(home)/registrar'} style={style.textButton}>Registrarse</Link>
+             <Text onPress={()=>handlerRegisterDelivery({cedula,email,nombre,apellido,telefono,contrasena,confirmarContrasena,address:location})} style={style.textButton}>Registrarse</Text>
            </TouchableOpacity>
-         </View>)
+         </View>
+         </ScrollView>
+         </KeyboardAvoidingView>)
  }
  const style = StyleSheet.create({
    textButton:{

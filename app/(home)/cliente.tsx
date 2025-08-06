@@ -38,7 +38,7 @@ export async function handlerRegisterClient({
   await fetch(`${process.env.EXPO_PUBLIC_HOST}/api/client/register`,{
     method:'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ c_i:parseInt(cedula),email:email,name:nombre,lastname:apellido,phone:telefono,password:contrasena, address:address})
+    body: JSON.stringify({ c_i:cedula,email:email,name:nombre,lastname:apellido,phone:telefono,password:contrasena, address:address})
 
   }).then(res=>{
     if(res.status === 201) {
@@ -60,7 +60,7 @@ export default function ClienteRegistrar(){
   const [apellido, setApellido] = useState('');
   const [telefono, setTelefono] = useState('');
   const [contrasena, setContrasena] = useState('');
-  const [confirmarContrasena, setConfirmarContrasena] = React.useState('');    
+  const [confirmarContrasena, setConfirmarContrasena] = useState('');    
   useFonts({Inter_900Black,LilyScriptOne_400Regular,Inter_300Light});
   const [location, setLocation] = useState<Location.LocationObject | null>(null);
     
