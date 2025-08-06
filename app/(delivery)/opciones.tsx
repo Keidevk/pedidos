@@ -10,7 +10,9 @@ import { router } from "expo-router";
 import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
+  KeyboardAvoidingView,
   Modal,
+  Platform,
   Pressable,
   ScrollView,
   Text,
@@ -404,225 +406,230 @@ export default function Home() {
           <Text style={{ textTransform: "uppercase" }}>
             Información del vehículo
           </Text>
-          <ScrollView
-            style={{
-              borderWidth: 1,
-              borderColor: "#E0E0E0",
-              borderRadius: 10,
-              padding: 15,
-              width: "100%",
-              gap: 15,
-            }}
-            contentContainerStyle={{
-              alignItems: "center",
-              justifyContent: "center",
-              gap: 15,
-            }}
+          <KeyboardAvoidingView
+            behavior={Platform.OS === "ios" ? "padding" : "height"}
+            style={{ flex: 1 }}
           >
-            <View
+            <ScrollView
               style={{
-                flexDirection: "row",
-                justifyContent: "space-between",
+                borderWidth: 1,
+                borderColor: "#E0E0E0",
+                borderRadius: 10,
+                padding: 15,
                 width: "100%",
-                alignItems: "center",
+                gap: 15,
               }}
-            >
-              <Text
-                style={{
-                  textTransform: "uppercase",
-                  color: "#3B3B3B",
-                  fontFamily: "Inter_300Light",
-                  width: 100,
-                }}
-              >
-                Tipo
-              </Text>
-              {editandoVehiculo ? (
-                <>
-                  <Pressable
-                    onPress={() => setShowModal(true)}
-                    style={{
-                      padding: 10,
-                      borderWidth: 1,
-                      borderColor: "#E0E0E0",
-                      borderRadius: 8,
-                      width: 120,
-                      backgroundColor: "#F7F7F7",
-                    }}
-                  >
-                    <Text
-                      style={{
-                        textAlign: "center",
-                        textTransform: "uppercase",
-                      }}
-                    >
-                      {vehiculoEditable?.tipoVehiculo
-                        ? vehiculoEditable.tipoVehiculo.toUpperCase()
-                        : "NO REGISTRADO"}
-                    </Text>
-                  </Pressable>
-
-                  <Modal transparent visible={showModal} animationType="fade">
-                    <View
-                      style={{
-                        flex: 1,
-                        backgroundColor: "#00000055",
-                        justifyContent: "center",
-                        alignItems: "center",
-                      }}
-                    >
-                      <View
-                        style={{
-                          backgroundColor: "#fff",
-                          width: 250,
-                          borderRadius: 10,
-                          padding: 20,
-                          gap: 10,
-                        }}
-                      >
-                        {vehiculoOptions.map((opt) => (
-                          <Pressable
-                            key={opt.value}
-                            onPress={() => {
-                              if (vehiculoEditable) {
-                                setVehiculoEditable({
-                                  ...vehiculoEditable,
-                                  tipoVehiculo: opt.value,
-                                });
-                              }
-                              setShowModal(false);
-                            }}
-                            style={{
-                              backgroundColor: "#EFEFEF",
-                              padding: 10,
-                              borderRadius: 6,
-                            }}
-                          >
-                            <Text style={{ textAlign: "center" }}>
-                              {opt.label}
-                            </Text>
-                          </Pressable>
-                        ))}
-                      </View>
-                    </View>
-                  </Modal>
-                </>
-              ) : (
-                <Text
-                  style={{
-                    textTransform: "uppercase",
-                    width: 120,
-                    textAlign: "center",
-                  }}
-                >
-                  {vehiculoEditable?.tipoVehiculo
-                    ? vehiculoEditable.tipoVehiculo.toUpperCase()
-                    : "NO REGISTRADO"}
-                </Text>
-              )}
-            </View>
-
-            <View
-              style={{
-                flexDirection: "row",
-                justifyContent: "space-between",
-                width: "100%",
+              contentContainerStyle={{
                 alignItems: "center",
+                justifyContent: "center",
+                gap: 15,
               }}
-            >
-              <Text
-                style={{
-                  textTransform: "uppercase",
-                  color: "#3B3B3B",
-                  fontFamily: "Inter_300Light",
-                  width: 100,
-                }}
-              >
-                Placa
-              </Text>
-              <TextInput
-                style={{
-                  textTransform: "uppercase",
-                  width: 100,
-                  textAlign: "center",
-                }}
-                value={
-                  vehiculoEditable?.licencia === ""
-                    ? `NO REGISTRADO`
-                    : `${vehiculoEditable?.licencia.toLocaleUpperCase()}`
-                }
-                onChangeText={(text) =>
-                  setVehiculoEditable(
-                    (prev) => prev && { ...prev, licencia: text }
-                  )
-                }
-                editable={editandoVehiculo}
-                multiline
-              />
-            </View>
-            <View
-              style={{
-                flexDirection: "row",
-                justifyContent: "space-between",
-                width: "100%",
-                alignItems: "center",
-              }}
-            >
-              <Text
-                style={{
-                  textTransform: "uppercase",
-                  color: "#3B3B3B",
-                  width: 100,
-                  fontFamily: "Inter_300Light",
-                }}
-              >
-                Descripción
-              </Text>
-              <TextInput
-                style={{
-                  textTransform: "uppercase",
-                  width: 100,
-                  textAlign: "center",
-                }}
-                value={
-                  vehiculoEditable?.descripcion === ""
-                    ? `NO REGISTRADO`
-                    : `${vehiculoEditable?.descripcion.toLocaleUpperCase()}`
-                }
-                onChangeText={(text) =>
-                  setVehiculoEditable(
-                    (prev) => prev && { ...prev, descripcion: text }
-                  )
-                }
-                editable={editandoVehiculo}
-                multiline
-              />
-            </View>
-            <TouchableOpacity
-              style={{ width: "100%", alignItems: "center" }}
-              onPress={handleSubmit}
             >
               <View
                 style={{
-                  width: 120,
-                  padding: 10,
-                  borderRadius: 30,
-                  backgroundColor: "#EB6278",
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                  width: "100%",
+                  alignItems: "center",
                 }}
               >
                 <Text
                   style={{
                     textTransform: "uppercase",
-                    color: "#fff",
-                    fontFamily: "Inter_700Bold",
-                    textAlign: "center",
+                    color: "#3B3B3B",
+                    fontFamily: "Inter_300Light",
+                    width: 100,
                   }}
                 >
-                  Guardar
+                  Tipo
                 </Text>
+                {editandoVehiculo ? (
+                  <>
+                    <Pressable
+                      onPress={() => setShowModal(true)}
+                      style={{
+                        padding: 10,
+                        borderWidth: 1,
+                        borderColor: "#E0E0E0",
+                        borderRadius: 8,
+                        width: 120,
+                        backgroundColor: "#F7F7F7",
+                      }}
+                    >
+                      <Text
+                        style={{
+                          textAlign: "center",
+                          textTransform: "uppercase",
+                        }}
+                      >
+                        {vehiculoEditable?.tipoVehiculo
+                          ? vehiculoEditable.tipoVehiculo.toUpperCase()
+                          : "NO REGISTRADO"}
+                      </Text>
+                    </Pressable>
+
+                    <Modal transparent visible={showModal} animationType="fade">
+                      <View
+                        style={{
+                          flex: 1,
+                          backgroundColor: "#00000055",
+                          justifyContent: "center",
+                          alignItems: "center",
+                        }}
+                      >
+                        <View
+                          style={{
+                            backgroundColor: "#fff",
+                            width: 250,
+                            borderRadius: 10,
+                            padding: 20,
+                            gap: 10,
+                          }}
+                        >
+                          {vehiculoOptions.map((opt) => (
+                            <Pressable
+                              key={opt.value}
+                              onPress={() => {
+                                if (vehiculoEditable) {
+                                  setVehiculoEditable({
+                                    ...vehiculoEditable,
+                                    tipoVehiculo: opt.value,
+                                  });
+                                }
+                                setShowModal(false);
+                              }}
+                              style={{
+                                backgroundColor: "#EFEFEF",
+                                padding: 10,
+                                borderRadius: 6,
+                              }}
+                            >
+                              <Text style={{ textAlign: "center" }}>
+                                {opt.label}
+                              </Text>
+                            </Pressable>
+                          ))}
+                        </View>
+                      </View>
+                    </Modal>
+                  </>
+                ) : (
+                  <Text
+                    style={{
+                      textTransform: "uppercase",
+                      width: 120,
+                      textAlign: "center",
+                    }}
+                  >
+                    {vehiculoEditable?.tipoVehiculo
+                      ? vehiculoEditable.tipoVehiculo.toUpperCase()
+                      : "NO REGISTRADO"}
+                  </Text>
+                )}
               </View>
-            </TouchableOpacity>
-          </ScrollView>
+
+              <View
+                style={{
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                  width: "100%",
+                  alignItems: "center",
+                }}
+              >
+                <Text
+                  style={{
+                    textTransform: "uppercase",
+                    color: "#3B3B3B",
+                    fontFamily: "Inter_300Light",
+                    width: 100,
+                  }}
+                >
+                  Placa
+                </Text>
+                <TextInput
+                  style={{
+                    textTransform: "uppercase",
+                    width: 100,
+                    textAlign: "center",
+                  }}
+                  value={
+                    vehiculoEditable?.licencia === ""
+                      ? `NO REGISTRADO`
+                      : `${vehiculoEditable?.licencia.toLocaleUpperCase()}`
+                  }
+                  onChangeText={(text) =>
+                    setVehiculoEditable(
+                      (prev) => prev && { ...prev, licencia: text }
+                    )
+                  }
+                  editable={editandoVehiculo}
+                  multiline
+                />
+              </View>
+              <View
+                style={{
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                  width: "100%",
+                  alignItems: "center",
+                }}
+              >
+                <Text
+                  style={{
+                    textTransform: "uppercase",
+                    color: "#3B3B3B",
+                    width: 100,
+                    fontFamily: "Inter_300Light",
+                  }}
+                >
+                  Descripción
+                </Text>
+                <TextInput
+                  style={{
+                    textTransform: "uppercase",
+                    width: 100,
+                    textAlign: "center",
+                  }}
+                  value={
+                    vehiculoEditable?.descripcion === ""
+                      ? `NO REGISTRADO`
+                      : `${vehiculoEditable?.descripcion.toLocaleUpperCase()}`
+                  }
+                  onChangeText={(text) =>
+                    setVehiculoEditable(
+                      (prev) => prev && { ...prev, descripcion: text }
+                    )
+                  }
+                  editable={editandoVehiculo}
+                  multiline
+                />
+              </View>
+              <TouchableOpacity
+                style={{ width: "100%", alignItems: "center" }}
+                onPress={handleSubmit}
+              >
+                <View
+                  style={{
+                    width: 120,
+                    padding: 10,
+                    borderRadius: 30,
+                    backgroundColor: "#EB6278",
+                  }}
+                >
+                  <Text
+                    style={{
+                      textTransform: "uppercase",
+                      color: "#fff",
+                      fontFamily: "Inter_700Bold",
+                      textAlign: "center",
+                    }}
+                  >
+                    Guardar
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            </ScrollView>
+          </KeyboardAvoidingView>
         </View>
         <TouchableOpacity
           onPress={() => router.push({ pathname: "/" })}
