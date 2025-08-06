@@ -107,7 +107,7 @@ export default function MenuPrincipal() {
         console.log("🔄 No hay deliverys disponibles. Forzando refetch...");
         refetchDeliverys();
       }
-    }, 120000); // ⏱️ Cada 2 minutos (120,000 ms)
+    }, 30000); // ⏱️ Cada 2 minutos (120,000 ms)
 
     return () => clearInterval(intervalo); // ⛑️ Limpieza al desmontar
   }, [deliverys]);
